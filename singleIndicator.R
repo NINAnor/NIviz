@@ -4,8 +4,8 @@ library(NIcalc)
 #-----------------------------#'
 indicator <- c("Dikesoldogg")
 
-indicatorImport <- importDatasetApi(username = "chloe.nater@nina.no",
-                                    password = "NIaction25!",
+indicatorImport <- importDatasetApi(username = "[...]",
+                                    password = "[...]",
                                     eco = NULL,
                                     indic = indicator,
                                     year = c("1990","2000","2010","2014","2019"),
