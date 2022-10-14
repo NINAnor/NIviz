@@ -1,6 +1,10 @@
+fig:unnamed-chunk-7
 introduction
-downloading-and-prepaering-example-data
 cross
 raw-data
 scaled-data
 maps
+raw-data-1
+scaled-data-1
+jerv
+other-figures

@@ -1,16 +1,12 @@
 --- 
-title: "A Minimal Book Example"
-author: "John Doe"
-date: "2022-10-13"
+title: "NIvis"
+author: ""
+date: "2022-10-14"
 site: bookdown::bookdown_site
 documentclass: book
 bibliography: [book.bib, packages.bib]
-# url: your book url like https://bookdown.org/yihui/bookdown
-# cover-image: path to the social sharing image like images/cover.jpg
 description: |
-  This is a minimal example of using the bookdown package to write a book.
-  The HTML output format for this example is bookdown::bs4_book,
-  set in the _output.yml file.
+  Code and functions for improved visualization of indicator data, thematic indices, and ecosystem indices from the Norwegian Nature Index work.
 biblio-style: apalike
 csl: chicago-fullnote-bibliography.csl
 ---
