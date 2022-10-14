@@ -10,7 +10,7 @@
 
 #### Prepare NI data
 
-The jerv (wolverine) data was downloaded using the `R/singleIndicator.R` script and the importDatasetApi() function,, and subsequntly the assembleNiObject() function, so now I can simply import it.
+The jerv (wolverine) data was downloaded using the `R/singleIndicator.R` script and the importDatasetApi() function,, and subsequently the assembleNiObject() function, so now I can simply import it.
 ```{r, include=F, eval=FALSE}
 # RETRIEVE DATA FROM DATABASE #
 #-----------------------------#'
@@ -164,13 +164,48 @@ rov <- sf::st_make_valid(rov)
 rov <- rov[rov$area!="DEF jerv",]
 ```
 
+Clip it against the outline of Norway to make it look more pretty
 ```{r}
-library(tmap)
-tm_shape(rov)+
-  tm_polygons(col = "area")
+path <- "data/outlineOfNorway_EPSG25833.shp"
+nor <- sf::read_sf(path)
+nor <- st_transform(nor, crs=st_crs(rov))
 ```
+
+```{r}
+rov <- st_intersection(rov, nor)
+```
+
+
+
 
 #### Link data and geometries
 
+```{r}
+rov$scaledIndicator <- jerv_tbl$scaled[match(rov$area, jerv_tbl$region)]
+rov$cv <- jerv_tbl$cv[match(rov$area, jerv_tbl$region)]
+rov$raw <- jerv_tbl$raw2019[match(rov$area, jerv_tbl$region)]
 
+```
+
+
+
+```{r}
+library(tmap)
+one <- tm_shape(rov)+
+  tm_polygons(col="scaledIndicator", 
+              border.col = "white")
+
+two <- tm_shape(rov)+
+  tm_polygons(col="cv", 
+              border.col = "white")
+
+three <- tm_shape(rov)+
+  tm_polygons(col="raw", 
+              border.col = "white")
+
+
+tmap_arrange(one, two, 
+             widths = c(.75, .25),
+             heights = c(1, 0.5))
+```
 
