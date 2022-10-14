@@ -13,7 +13,8 @@ myPwd  <- "" # secret password
 ```
 
 Choose which indicator(s) you want, use the NIcalc "importDatasetApi" function to retrieve data from the database and save the dataset locally.
-```{r , eval = FALSE, message = FALSE}
+
+```{r}
 indicator <- c("Dikesoldogg",
                "Jerv",
                "Elg",
@@ -21,6 +22,9 @@ indicator <- c("Dikesoldogg",
                "Havørn",
                "Lange")
 
+```
+
+```{r , eval = FALSE, message = FALSE}
 for(i in indicator){
 indicatorImport <- NULL
 indicatorImport <- NIcalc::importDatasetApi(
@@ -31,8 +35,23 @@ indicatorImport <- NIcalc::importDatasetApi(
 
 assign(paste0(i, "_import"), indicatorImport)
 }
+
+
 ```
 
+```{r, eval=F}
+path <- "P:/41201612_naturindeks_2021_2023_database_og_innsynslosning/temp/"
+
+for(i in indicator){
+  temp <- get(paste0(i, "_import"))
+  saveRDS(temp, paste0(path, i, "_import.rds"))
+}
+
+for(i in indicator){
+  temp <- paste0(path, i, "_import.rds")
+  assign(i, readRDS(temp))
+}
+```
 
 Next, I need to assemble the data set. This shouldn't be necessary since all the data is already present. But One thing I notices was that for jerv, the distribution familiy and parameters only appear after assembling.
 
@@ -65,7 +84,7 @@ for(i in indicator){
 
 
 Save the files 
-```{r, eval = TRUE}
+```{r, eval = F}
 
 for(i in indicator){
   temp <- get(paste0(i, "_assemble"))
@@ -73,35 +92,78 @@ for(i in indicator){
 }
 
 ```
-Future update: I could sum the bootstrapping here also for all indicators
-```{r, eval =F}
-# bruker tradOb siden custumDist er NA. Dette er ikke en generisk løsning. 
-obstype <- rep("tradObs", nrow(temp))
 
-#myYears <- as.character(c(1990,2000,2010,2014,2019))
-myYears <- as.character(c(2019))
 
-for(i in 1:length(myYears)){
-# print(i)
 
-myMat <- NIcalc::sampleObsMat(
-  ICunitId           = temp$ICunitId, 
-  value              = temp$expectedValue,
-  distrib            = temp$distributionFamilyName,
-  mu                 = temp$distParameter1,
-  sig                = temp$distParameter2,
-  customDistribution = temp$customDistributionUUID,
-          obsType = obstype,
-          nsim = 1000
-          
-)
-assign(paste0("myMat", myYears[i]), myMat)
+
+Loading the datafiles back into R.
+```{r}
+for(i in indicator){
+  temp <- paste0("data/", i, "_assemebled.rds")
+  assign(i, readRDS(temp))
 }
-
-par(mfrow = c(1,2))
-hist(myMat2019[1,], main = "Rovviltregion 1", xlab = "")
-hist(myMat2019[8,], main = "Rovviltregion 8", xlab = "")
-
 ```
 
 
+```{r, eval =F}
+myYears <- as.character(c(1990,2000,2010,2014,2019))
+
+
+for(j in indicator){
+
+for(j in indicator){
+  temp <- get(j)
+  temp2 <- get(paste0(j, "_import"))
+  temp_comb <- data.frame(NULL)
+  
+  for(i in 1:length(myYears)){
+print(j)
+print(i)
+
+obs <- NULL
+  obs <- temp$indicatorValues[[i]]$distributionFamilyName
+  obs[!is.na(obs)] <- "tradObs"
+  obs[is.na(obs)]  <- "customObs"
+
+
+myMat <- NIcalc::sampleObsMat(
+  ICunitId           = temp$indicatorValues[[i]]$ICunitId, 
+  value              = temp$indicatorValues[[i]]$expectedValue,
+  distrib            = temp$indicatorValues[[i]]$distributionFamilyName,
+  mu                 = temp$indicatorValues[[i]]$distParameter1,
+  sig                = temp$indicatorValues[[i]]$distParameter2,
+  customDistribution = temp$indicatorValues[[i]]$customDistribution,
+  obsType            = obs,
+  nsim               = 1000
+          
+)
+
+myMat2 <- as.data.frame(myMat)
+
+myMat2 <- myMat2 %>%
+  tibble::add_column(.before=1,
+    ICunitID = row.names(myMat))
+
+myMat2 <- myMat2 %>%
+  tibble::add_column(.after = 1,
+    ICunitName = temp2$ICunits$name[match(
+      myMat2$ICunitID, temp2$ICunits$id)],
+    year = myYears[i]) 
+
+temp_comb <- rbind(temp_comb, myMat2)
+
+assign(paste0(j, "_bootstrapped"), temp_comb)
+ }
+}
+
+```
+
+Save the files 
+```{r, eval = F}
+
+for(i in indicator){
+  temp <- get(paste0(i, "_bootstrapped"))
+  saveRDS(temp, paste0("data/", i, "_bootstrapped.rds"))
+}
+
+```
