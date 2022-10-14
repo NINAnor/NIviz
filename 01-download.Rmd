@@ -1,9 +1,7 @@
 # Downloading and preparing example data 
 
 ```{r Load library, eval = TRUE, message = FALSE, warning = FALSE}
-
 library(NIcalc)
-
 ```
 
 Fill in your username (NINA email) and password.
@@ -15,30 +13,95 @@ myPwd  <- "" # secret password
 ```
 
 Choose which indicator(s) you want, use the NIcalc "importDatasetApi" function to retrieve data from the database and save the dataset locally.
-```{r Run locally, eval = FALSE, message = FALSE}
+```{r , eval = FALSE, message = FALSE}
+indicator <- c("Dikesoldogg",
+               "Jerv",
+               "Elg",
+               "Lomvi",
+               "Havørn",
+               "Lange")
 
-# RETRIEVE DATA FROM DATABASE #
-#-----------------------------#'
-indicator <- c("Dikesoldogg")
-
-dikesoldogg <- NIcalc::importDatasetApi(
+for(i in indicator){
+indicatorImport <- NULL
+indicatorImport <- NIcalc::importDatasetApi(
   username = myUser,
   password = myPwd,
-  eco = NULL, 
-  indic = indicator,
+  indic = i,
   year = c("1990","2000","2010","2014","2019"))
 
-saveRDS(dikesoldogg, "C:/...localDirectory/dikesoldogg.rds")
+assign(paste0(i, "_import"), indicatorImport)
+}
+```
 
-rm(dikesoldogg)
-rm(myPwd)
+
+Next, I need to assemble the data set. This shouldn't be necessary since all the data is already present. But One thing I notices was that for jerv, the distribution familiy and parameters only appear after assembling.
+
+```{r, message=F, warning=F}
+# Spesify all of Norway incl the five regions, som NIunits:
+myNIunits <- c(allArea = T, parts = T, counties = F)
+# Include all BSunits (kommuner) irrespective of the proportion of the main ecosystems:
+myPartOfTotal <- 0
+
+for(i in indicator){
+
+  temp <- get(paste0(i, "_import"))
+  assemeble <- NULL
+  assemeble <- NIcalc::assembleNiObject(
+    inputData = temp,
+    predefNIunits = myNIunits, 
+    partOfTotal = myPartOfTotal, 
+    indexType = "thematic",
+    part = "ecosystem",
+    total = "total")  
+  
+  # I dont se the output changing if I for example chose total = marine. Perhaps 'part' and 'total' only becomes an issue if partOfTotal != 0.
+  
+  assign(paste0(i, "_assemble"), assemeble)
+
+}
+
 
 ```
 
 
-Load the locally saved indicator dataset back into the R environment.
-```{r Import local dataset, eval = TRUE}
+Save the files 
+```{r, eval = TRUE}
 
-dikesoldogg <- readRDS("C:/LocalDirectory/dikesoldogg.rds")
+for(i in indicator){
+  temp <- get(paste0(i, "_assemble"))
+  saveRDS(temp, paste0("data/", i, "_assemebled.rds"))
+}
 
 ```
+Future update: I could sum the bootstrapping here also for all indicators
+```{r, eval =F}
+# bruker tradOb siden custumDist er NA. Dette er ikke en generisk løsning. 
+obstype <- rep("tradObs", nrow(temp))
+
+#myYears <- as.character(c(1990,2000,2010,2014,2019))
+myYears <- as.character(c(2019))
+
+for(i in 1:length(myYears)){
+# print(i)
+
+myMat <- NIcalc::sampleObsMat(
+  ICunitId           = temp$ICunitId, 
+  value              = temp$expectedValue,
+  distrib            = temp$distributionFamilyName,
+  mu                 = temp$distParameter1,
+  sig                = temp$distParameter2,
+  customDistribution = temp$customDistributionUUID,
+          obsType = obstype,
+          nsim = 1000
+          
+)
+assign(paste0("myMat", myYears[i]), myMat)
+}
+
+par(mfrow = c(1,2))
+hist(myMat2019[1,], main = "Rovviltregion 1", xlab = "")
+hist(myMat2019[8,], main = "Rovviltregion 8", xlab = "")
+
+```
+
+
