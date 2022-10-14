@@ -5,7 +5,7 @@
 ```{r, echo=TRUE, message=FALSE, warning=FALSE}
 library(plotly)
 ## TODO change to correct data source
-passerinesImport <- readRDS("C:/Users/matthew.grainger/Documents/Projects_in_development/NIviz/data/passerinesImport.rds")
+passerinesImport <- readRDS(paste0(here::here(), "/data/passerinesImport.rds"))
 
 dat=passerinesImport$indicatorObservations$indicatorValues 
 
