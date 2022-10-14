@@ -16,7 +16,7 @@ The jerv (wolverine) data was downloaded using the `R/singleIndicator.R` script 
 
 
 ```r
-jerv <- readRDS("data/jerv_assemble.rds")
+jerv <- readRDS("data/Jerv_assemebled.rds")
 ```
 
 
@@ -218,7 +218,7 @@ three <- tm_shape(rov)+
 tmap_arrange(one, two, 
              widths = c(.75, .25),
              heights = c(1, 0.5))
-#> Legend labels were too wide. The labels have been resized to 0.44, 0.44, 0.44, 0.44, 0.44, 0.44, 0.44. Increase legend.width (argument of tm_layout) to make the legend wider and therefore the labels larger.
+#> Legend labels were too wide. The labels have been resized to 0.44, 0.44, 0.44, 0.44, 0.44, 0.44. Increase legend.width (argument of tm_layout) to make the legend wider and therefore the labels larger.
 ```
 
 ![](03-maps_files/figure-epub3/unnamed-chunk-13-1.png)<!-- -->

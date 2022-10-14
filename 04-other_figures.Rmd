@@ -82,6 +82,9 @@ wordcloud(words = lomvi$PressureFactor, freq = lomvi$PressureValue, min.freq = 1
 ```
 
 ## Data type
+```{r}
+source("R/colorPalettes.R")
+```
 
 ```{r}
 #Elg datatyper
