@@ -108,10 +108,13 @@ for(i in indicator){
 ```{r, eval =F}
 myYears <- as.character(c(1990,2000,2010,2014,2019))
 
+
 for(j in indicator){
-  temp_comb <- data.frame(NULL)
+
+for(j in indicator){
   temp <- get(j)
   temp2 <- get(paste0(j, "_import"))
+  temp_comb <- data.frame(NULL)
   
   for(i in 1:length(myYears)){
 print(j)
@@ -121,8 +124,7 @@ obs <- NULL
   obs <- temp$indicatorValues[[i]]$distributionFamilyName
   obs[!is.na(obs)] <- "tradObs"
   obs[is.na(obs)]  <- "customObs"
-  #obstype[[i]] <- obs
-  
+
 
 myMat <- NIcalc::sampleObsMat(
   ICunitId           = temp$indicatorValues[[i]]$ICunitId, 
