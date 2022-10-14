@@ -1,2 +1,44 @@
-# Downloading and prepaering example data 
+# Downloading and preparing example data 
 
+```{r Load library, eval = TRUE, message = FALSE, warning = FALSE}
+
+library(NIcalc)
+
+```
+
+Fill in your username (NINA email) and password.
+```{r Run locally, eval = FALSE}
+
+myUser <- "user@nina.no" # insert NINA email
+myPwd  <- "" # secret password
+
+```
+
+Choose which indicator(s) you want, use the NIcalc "importDatasetApi" function to retrieve data from the database and save the dataset locally.
+```{r Run locally, eval = FALSE, message = FALSE}
+
+# RETRIEVE DATA FROM DATABASE #
+#-----------------------------#'
+indicator <- c("Dikesoldogg")
+
+dikesoldogg <- NIcalc::importDatasetApi(
+  username = myUser,
+  password = myPwd,
+  eco = NULL, 
+  indic = indicator,
+  year = c("1990","2000","2010","2014","2019"))
+
+saveRDS(dikesoldogg, "C:/...localDirectory/dikesoldogg.rds")
+
+rm(dikesoldogg)
+rm(myPwd)
+
+```
+
+
+Load the locally saved indicator dataset back into the R environment.
+```{r Import local dataset, eval = TRUE}
+
+dikesoldogg <- readRDS("C:/LocalDirectory/dikesoldogg.rds")
+
+```
