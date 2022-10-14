@@ -52,7 +52,7 @@ assemeble <- NIcalc::assembleNiObject(
 
 
 ```{r}
-jerv <- readRDS("data/jerv_assemble.rds")
+jerv <- readRDS("data/Jerv_assemebled.rds")
 ```
 
 
