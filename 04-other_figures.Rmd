@@ -1,1 +1,82 @@
 # Other figures
+
+# Wordcloud figures
+```{r Load library, eval = TRUE, message = FALSE, warning = FALSE}
+
+library(wordcloud)
+library(NIcalc)
+library(wordcloud2)
+library(RColorBrewer)
+library(readxl)
+library(dplyr)
+library(tm)
+
+```
+
+The following wordcloud figures show the pressure factors for each indicator, where both the color saturation and text size represent the importance of each pressure factor. Small text size and low saturation means low importance, while large text size represent pressure factors with high importance to the indicator.  
+```{r Wordcloud - Data management, eval = TRUE, echo = TRUE}
+
+# Load dataset
+pressure = read_excel("P:/41201612_naturindeks_2021_2023_database_og_innsynslosning/Pilot_Forbedring_Innsynsløsning/R/Indikator_paavirkning.xlsx")
+
+# Filter for species of interest
+pressure = pressure %>% filter(navn_norsk == "Elg" | navn_norsk == "Dikesoldogg" | navn_norsk == "Havørn" | navn_norsk == "Lange" | navn_norsk == "Jerv" | navn_norsk == "Lomvi") # NB - Jerv was not included in the provided excel file
+pressure = arrange(pressure, by = navn_norsk)
+pressure = pressure %>% rename(PressureFactor = Paavirkningsfaktor, PressureValue = FK_PaavirkningsverdiID)
+
+# Remove all instances of "Ikke rel/ukjent" category" and increase the value of pressure factors for better contrast in wordcloud figures
+pressure = pressure %>% filter(PressureValue != 7) %>% mutate(PressureValue = PressureValue*2) 
+
+# Create separate datasets for the different species
+dikesoldogg = pressure %>% filter(navn_norsk == "Dikesoldogg") %>% dplyr::select(PressureFactor, PressureValue)
+
+elg = pressure %>% filter(navn_norsk == "Elg") %>% dplyr::select(PressureFactor, PressureValue)
+
+havørn = pressure %>% filter(navn_norsk == "Havørn") %>% dplyr::select(PressureFactor, PressureValue)
+
+lange = pressure %>% filter(navn_norsk == "Lange") %>% dplyr::select(PressureFactor, PressureValue)
+
+lomvi = pressure %>% filter(navn_norsk == "Lomvi") %>% dplyr::select(PressureFactor, PressureValue)
+
+# Create a custom color gradient (green in this case)
+pressureColors = c("#bde4aa", "#addb9d", "#9cd28f", "#8cc982", "#7dc275", "#6cb967", "#5db15a", "#50a54e", "#479845", "#3f8c3b", "#367e31", "#2e7228", "#25661f") 
+
+```
+
+## The most important pressure factors for dikesoldogg (oblong-leaved sundew)
+```{r Wordcloud - Dikesoldogg, eval = TRUE, echo = TRUE}
+
+# Dikesoldogg
+wordcloud(words = dikesoldogg$PressureFactor, freq = dikesoldogg$PressureValue, min.freq = 1, max.words = 200, random.order = FALSE, rot.per = 0.35, colors = pressureColors, scale = c(1.5, 0.5)) # use rot.per to set the percentage of words that are at a 90 degree angle
+
+```
+
+## The most important pressure factors for elg (Moose)
+```{r Wordcloud - Elg, eval = TRUE, echo = TRUE}
+
+wordcloud(words = elg$PressureFactor, freq = elg$PressureValue, min.freq = 1, max.words = 200, random.order = FALSE, rot.per = 0.35, colors = pressureColors, scale = c(1.5, 0.5))
+
+```
+
+## The most important pressure factors for havørn (White-tailed eagle)
+```{r Wordcloud - Havørn, eval = TRUE, echo = TRUE}
+
+wordcloud(words = havørn$PressureFactor, freq = havørn$PressureValue, min.freq = 1, max.words = 200, random.order = FALSE, rot.per = 0.35, colors = pressureColors, scale = c(1.5, 0.5))
+
+```
+
+
+## The most important pressure factors for Lange (Common ling) 
+```{r Wordcloud - Lange, eval = TRUE, echo = TRUE}
+
+wordcloud(words = lange$PressureFactor, freq = lange$PressureValue, min.freq = 1, max.words = 200, random.order = FALSE, rot.per = 0.35, colors = pressureColors, scale = c(1.5, 0.5))
+
+```
+
+
+## The most important pressure factors for Lomvi (common guillemot)
+```{r Wordcloud - Lomvi, eval = TRUE, echo = TRUE}
+
+wordcloud(words = lomvi$PressureFactor, freq = lomvi$PressureValue, min.freq = 1, max.words = 200, random.order = FALSE, rot.per = 0.35, colors = pressureColors, scale = c(1.5, 0.5))
+
+```
