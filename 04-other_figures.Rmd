@@ -7,6 +7,85 @@ library(ggplot2)
 library(tidyverse)
 ```
 
+## Gradient density plots for interactive maps
+The maps presented on the webpage do not include any representation of uncertainty. One way of including that information without having to add additional (layers to the) maps would be to build on the interactive functions included so far and present a probability distribution for the given region and year. This could be displayed in the same box that currently appears when hovering over an area and displays area name and average indicator value.
+
+To make these density plots, we use the previously simulated bootstrap samples, using Jerv as an example: 
+
+```{r, eval = TRUE}
+
+i <- "Jerv"
+bootStrp <- readRDS(paste0("data/", i, "_bootstrapped_scaled.rds"))
+head(bootStrp)
+
+```
+Before proceeding any further, we need to force all indicator values > 1 to display as 1. 
+
+```{r, eval = TRUE}
+
+bootStrp$scaledIndicator[which(bootStrp$scaledIndicator > 1)] <- 1
+
+```
+
+Next, we need to manually calculate the probability densities for the indicator values in each year and area. This is necessary for making density plots with a color gradient fill (but see further below for an alternative using the "ggridges" package which does not require this intermediate step).
+
+```{r, eval = TRUE}
+years <- unique(bootStrp$year)
+areas <- unique(bootStrp$ICunitName)
+
+pDens <- data.frame()
+for(t in years){
+  for(a in areas){
+    
+    bootStrp_sub <- subset(bootStrp, year == t & ICunitName == a)
+    
+    pDens_a_t <- data.frame(
+      ICunitName = a,
+      year = t, 
+      x = density(bootStrp_sub$scaledIndicator)$x,
+      y = density(bootStrp_sub$scaledIndicator)$y
+    )
+    
+    pDens <- rbind(pDens, pDens_a_t)
+  }
+}
+
+```
+
+```{r, eval = TRUE}
+
+for(t in years){
+
+  # Take data subsets for a given year
+  bootStrp_yr <- bootStrp[which(bootStrp$year == t),]
+  pDens_yr <- pDens[which(pDens$year == t),]
+
+  # Extract distribution medians
+  sum_values <- bootStrp_yr %>% 
+    group_by(ICunitName) %>%
+    summarise(sumStat = median(scaledIndicator)) 
+  
+  # Plot densities
+  print(
+    ggplot(pDens_yr, aes(x, y)) + 
+      geom_segment(aes(xend = x, yend = 0, colour = x)) + 
+      scale_color_NIviz_c(name = "IndMap_cols") + 
+      ggtitle(paste0(i, " (", t, ")")) +
+      xlab("Value") + 
+      geom_vline(data = sum_values, aes(xintercept = sumStat)) + 
+      facet_wrap(~ ICunitName, scales = 'free') + 
+      theme_classic() + 
+      theme(strip.background = element_blank(), 
+            legend.title = element_blank(),
+            axis.line.y = element_blank(), axis.ticks.y = element_blank(),
+            axis.text.y = element_blank(), axis.title.y = element_blank())
+  )
+}
+
+
+
+```
+
 
 ## Ecosystem fidelity
 All indicators are assigned to at least one ecosystem, but a fair number of them are assigned to multiple ecosystems by means of proportions. Wolverine (Jerv), for example, is assigned with 25\% to forest and and 75\% to mountain. This basic information could easily be displayed on each indicator's page on naturindeks.no. 
