@@ -2,4 +2,56 @@
 
 ## Raw data
 
+
+```r
+library(plotly)
+## TODO change to correct data source
+passerinesImport <- readRDS(paste0(here::here(), "/data/passerinesImport.rds"))
+
+dat=passerinesImport$indicatorObservations$indicatorValues 
+
+dat$yearName=as.numeric(dat$yearName) # convert character vector to numeric years
+sum_dat=dat %>% 
+  group_by(ICunitName, yearName) %>% 
+  summarise(mnExpected=mean(expectedValue, na.rm=TRUE),
+            mnUpper=mean(upperQuantile, na.rm=TRUE),
+            mnLower=mean(lowerQuantile, na.rm=TRUE)) # summerise the data to mean values
+
+p=sum_dat %>% 
+  ggplot(aes(as.numeric(yearName), mnExpected, col=ICunitName))+
+  geom_line()+
+  geom_pointrange(aes(x=as.numeric(yearName), y=mnExpected, ymin=mnLower, ymax=mnUpper))+
+  geom_point(data=dat, aes(as.numeric(yearName), expectedValue, alpha=0.2))+
+  labs(x="year", y="Expected value")+
+  theme_classic()+
+  theme(text = element_text(colour = "#A0A0A3"), 
+        title = element_text(colour = "#FFFFFF"), 
+axis.title.x = element_text(colour = "#A0A0A3"), 
+axis.title.y = element_text(colour = "#A0A0A3"), 
+panel.grid.major.y = element_line(colour = "#707073", size=0.2)) # replace this with the correct theme
+
+p2=ggplotly(p)
+p2 %>% layout(
+  updatemenus = list(
+    list(
+      type = "list",
+      label = 'Category',
+      buttons = list(
+        list(method = "restyle",
+             args = list('visible', c(TRUE, FALSE, FALSE)),
+             label = "Nord-Norge"),
+        list(method = "restyle",
+             args = list('visible', c(FALSE, TRUE, FALSE)),
+             label = "Norge"),
+        list(method = "restyle",
+             args = list('visible', c(FALSE, FALSE, TRUE)),
+             label = "Sør-Norge")
+      )
+    )
+  )
+) # Add drop down menus for the data
+```
+
+![](02-time_series_files/figure-epub3/unnamed-chunk-1-1.png)<!-- -->
+
 ## Scaled data

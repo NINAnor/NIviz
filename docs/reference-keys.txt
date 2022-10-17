@@ -8,3 +8,4 @@ raw-data-1
 scaled-data-1
 jerv
 other-figures
+data-type

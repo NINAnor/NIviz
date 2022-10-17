@@ -128,14 +128,303 @@
 \hypertarget{introduction}{%
 \chapter{Introduction}\label{introduction}}
 
-\hypertarget{downloading-and-prepaering-example-data}{%
-\chapter{Downloading and prepaering example data}\label{downloading-and-prepaering-example-data}}
+\hypertarget{downloading-and-preparing-example-data}{%
+\chapter{Downloading and preparing example data}\label{downloading-and-preparing-example-data}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(NIcalc)}
+\end{Highlighting}
+\end{Shaded}
+
+Fill in your username (NINA email) and password.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+
+\NormalTok{myUser }\OtherTok{\textless{}{-}} \StringTok{"user@nina.no"} \CommentTok{\# insert NINA email}
+\NormalTok{myPwd  }\OtherTok{\textless{}{-}} \StringTok{""} \CommentTok{\# secret password}
+\end{Highlighting}
+\end{Shaded}
+
+Choose which indicator(s) you want, use the NIcalc ``importDatasetApi'' function to retrieve data from the database and save the dataset locally.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{indicator }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\StringTok{"Dikesoldogg"}\NormalTok{,}
+               \StringTok{"Jerv"}\NormalTok{,}
+               \StringTok{"Elg"}\NormalTok{,}
+               \StringTok{"Lomvi"}\NormalTok{,}
+               \StringTok{"Havørn"}\NormalTok{,}
+               \StringTok{"Lange"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ControlFlowTok{for}\NormalTok{(i }\ControlFlowTok{in}\NormalTok{ indicator)\{}
+\NormalTok{indicatorImport }\OtherTok{\textless{}{-}} \ConstantTok{NULL}
+\NormalTok{indicatorImport }\OtherTok{\textless{}{-}}\NormalTok{ NIcalc}\SpecialCharTok{::}\FunctionTok{importDatasetApi}\NormalTok{(}
+  \AttributeTok{username =}\NormalTok{ myUser,}
+  \AttributeTok{password =}\NormalTok{ myPwd,}
+  \AttributeTok{indic =}\NormalTok{ i,}
+  \AttributeTok{year =} \FunctionTok{c}\NormalTok{(}\StringTok{"1990"}\NormalTok{,}\StringTok{"2000"}\NormalTok{,}\StringTok{"2010"}\NormalTok{,}\StringTok{"2014"}\NormalTok{,}\StringTok{"2019"}\NormalTok{))}
+
+\FunctionTok{assign}\NormalTok{(}\FunctionTok{paste0}\NormalTok{(i, }\StringTok{"\_import"}\NormalTok{), indicatorImport)}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{path }\OtherTok{\textless{}{-}} \StringTok{"P:/41201612\_naturindeks\_2021\_2023\_database\_og\_innsynslosning/temp/"}
+
+\ControlFlowTok{for}\NormalTok{(i }\ControlFlowTok{in}\NormalTok{ indicator)\{}
+\NormalTok{  temp }\OtherTok{\textless{}{-}} \FunctionTok{get}\NormalTok{(}\FunctionTok{paste0}\NormalTok{(i, }\StringTok{"\_import"}\NormalTok{))}
+  \FunctionTok{saveRDS}\NormalTok{(temp, }\FunctionTok{paste0}\NormalTok{(path, i, }\StringTok{"\_import.rds"}\NormalTok{))}
+\NormalTok{\}}
+
+\ControlFlowTok{for}\NormalTok{(i }\ControlFlowTok{in}\NormalTok{ indicator)\{}
+\NormalTok{  temp }\OtherTok{\textless{}{-}} \FunctionTok{paste0}\NormalTok{(path, i, }\StringTok{"\_import.rds"}\NormalTok{)}
+  \FunctionTok{assign}\NormalTok{(i, }\FunctionTok{readRDS}\NormalTok{(temp))}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+Next, I need to assemble the data set. This shouldn't be necessary since all the data is already present. But One thing I notices was that for jerv, the distribution familiy and parameters only appear after assembling.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Spesify all of Norway incl the five regions, som NIunits:}
+\NormalTok{myNIunits }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\AttributeTok{allArea =}\NormalTok{ T, }\AttributeTok{parts =}\NormalTok{ T, }\AttributeTok{counties =}\NormalTok{ F)}
+\CommentTok{\# Include all BSunits (kommuner) irrespective of the proportion of the main ecosystems:}
+\NormalTok{myPartOfTotal }\OtherTok{\textless{}{-}} \DecValTok{0}
+
+\ControlFlowTok{for}\NormalTok{(i }\ControlFlowTok{in}\NormalTok{ indicator)\{}
+
+\NormalTok{  temp }\OtherTok{\textless{}{-}} \FunctionTok{get}\NormalTok{(}\FunctionTok{paste0}\NormalTok{(i, }\StringTok{"\_import"}\NormalTok{))}
+\NormalTok{  assemeble }\OtherTok{\textless{}{-}} \ConstantTok{NULL}
+\NormalTok{  assemeble }\OtherTok{\textless{}{-}}\NormalTok{ NIcalc}\SpecialCharTok{::}\FunctionTok{assembleNiObject}\NormalTok{(}
+    \AttributeTok{inputData =}\NormalTok{ temp,}
+    \AttributeTok{predefNIunits =}\NormalTok{ myNIunits, }
+    \AttributeTok{partOfTotal =}\NormalTok{ myPartOfTotal, }
+    \AttributeTok{indexType =} \StringTok{"thematic"}\NormalTok{,}
+    \AttributeTok{part =} \StringTok{"ecosystem"}\NormalTok{,}
+    \AttributeTok{total =} \StringTok{"total"}\NormalTok{)  }
+  
+  \CommentTok{\# I dont se the output changing if I for example chose total = marine. Perhaps \textquotesingle{}part\textquotesingle{} and \textquotesingle{}total\textquotesingle{} only becomes an issue if partOfTotal != 0.}
+  
+  \FunctionTok{assign}\NormalTok{(}\FunctionTok{paste0}\NormalTok{(i, }\StringTok{"\_assemble"}\NormalTok{), assemeble)}
+
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+Save the files
+
+\begin{Shaded}
+\begin{Highlighting}[]
+
+\ControlFlowTok{for}\NormalTok{(i }\ControlFlowTok{in}\NormalTok{ indicator)\{}
+\NormalTok{  temp }\OtherTok{\textless{}{-}} \FunctionTok{get}\NormalTok{(}\FunctionTok{paste0}\NormalTok{(i, }\StringTok{"\_assemble"}\NormalTok{))}
+  \FunctionTok{saveRDS}\NormalTok{(temp, }\FunctionTok{paste0}\NormalTok{(}\StringTok{"data/"}\NormalTok{, i, }\StringTok{"\_assemebled.rds"}\NormalTok{))}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+Loading the datafiles back into R.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ControlFlowTok{for}\NormalTok{(i }\ControlFlowTok{in}\NormalTok{ indicator)\{}
+\NormalTok{  temp }\OtherTok{\textless{}{-}} \FunctionTok{paste0}\NormalTok{(}\StringTok{"data/"}\NormalTok{, i, }\StringTok{"\_assemebled.rds"}\NormalTok{)}
+  \FunctionTok{assign}\NormalTok{(i, }\FunctionTok{readRDS}\NormalTok{(temp))}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{myYears }\OtherTok{\textless{}{-}} \FunctionTok{as.character}\NormalTok{(}\FunctionTok{c}\NormalTok{(}\DecValTok{1990}\NormalTok{,}\DecValTok{2000}\NormalTok{,}\DecValTok{2010}\NormalTok{,}\DecValTok{2014}\NormalTok{,}\DecValTok{2019}\NormalTok{))}
+
+
+\ControlFlowTok{for}\NormalTok{(j }\ControlFlowTok{in}\NormalTok{ indicator)\{}
+\FunctionTok{print}\NormalTok{(j)}
+
+\NormalTok{  temp }\OtherTok{\textless{}{-}} \FunctionTok{get}\NormalTok{(j)}
+\NormalTok{  temp2 }\OtherTok{\textless{}{-}} \FunctionTok{get}\NormalTok{(}\FunctionTok{paste0}\NormalTok{(j, }\StringTok{"\_import"}\NormalTok{))}
+\NormalTok{  temp\_comb }\OtherTok{\textless{}{-}} \FunctionTok{data.frame}\NormalTok{(}\ConstantTok{NULL}\NormalTok{)}
+\NormalTok{  myMat2 }\OtherTok{\textless{}{-}} \ConstantTok{NULL}
+\NormalTok{  myMat2\_comb }\OtherTok{\textless{}{-}} \ConstantTok{NULL}
+\NormalTok{  obstype }\OtherTok{\textless{}{-}} \ConstantTok{NULL}
+  
+  
+\NormalTok{  obstype }\OtherTok{\textless{}{-}}\NormalTok{ temp}\SpecialCharTok{$}\NormalTok{referenceValues}\SpecialCharTok{$}\NormalTok{distributionFamilyName}
+\NormalTok{  obstype[}\SpecialCharTok{!}\FunctionTok{is.na}\NormalTok{(obstype)] }\OtherTok{\textless{}{-}} \StringTok{"tradObs"}
+\NormalTok{  obstype[}\FunctionTok{is.na}\NormalTok{(obstype)]  }\OtherTok{\textless{}{-}} \StringTok{"customObs"}
+  
+\NormalTok{myMatr }\OtherTok{\textless{}{-}}\NormalTok{ NIcalc}\SpecialCharTok{::}\FunctionTok{sampleObsMat}\NormalTok{(}
+  \AttributeTok{ICunitId           =}\NormalTok{ temp}\SpecialCharTok{$}\NormalTok{referenceValues}\SpecialCharTok{$}\NormalTok{ICunitId, }
+  \AttributeTok{value              =}\NormalTok{ temp}\SpecialCharTok{$}\NormalTok{referenceValues}\SpecialCharTok{$}\NormalTok{expectedValue,}
+  \AttributeTok{distrib            =}\NormalTok{ temp}\SpecialCharTok{$}\NormalTok{referenceValues}\SpecialCharTok{$}\NormalTok{distributionFamilyName,}
+  \AttributeTok{mu                 =}\NormalTok{ temp}\SpecialCharTok{$}\NormalTok{referenceValues}\SpecialCharTok{$}\NormalTok{distParameter1,}
+  \AttributeTok{sig                =}\NormalTok{ temp}\SpecialCharTok{$}\NormalTok{referenceValues}\SpecialCharTok{$}\NormalTok{distParameter2,}
+  \AttributeTok{customDistribution =}\NormalTok{ temp}\SpecialCharTok{$}\NormalTok{referenceValues}\SpecialCharTok{$}\NormalTok{customDistribution,}
+  \AttributeTok{obsType            =}\NormalTok{ obstype,}
+  \AttributeTok{nsim =}\DecValTok{1000}
+\NormalTok{        )  }
+  
+\NormalTok{myMatr }\OtherTok{\textless{}{-}} \FunctionTok{as.data.frame}\NormalTok{(myMatr)}
+\NormalTok{myMatr }\OtherTok{\textless{}{-}}\NormalTok{ myMatr }\SpecialCharTok{\%\textgreater{}\%}
+\NormalTok{  tibble}\SpecialCharTok{::}\FunctionTok{add\_column}\NormalTok{(}\AttributeTok{.before=}\DecValTok{1}\NormalTok{,}
+    \AttributeTok{ICunitID =} \FunctionTok{row.names}\NormalTok{(myMatr))}
+
+\NormalTok{myMatr }\OtherTok{\textless{}{-}}\NormalTok{ myMatr }\SpecialCharTok{\%\textgreater{}\%}
+\NormalTok{  tibble}\SpecialCharTok{::}\FunctionTok{add\_column}\NormalTok{(}\AttributeTok{.after =} \DecValTok{1}\NormalTok{,}
+      \AttributeTok{year =} \ConstantTok{NA}\NormalTok{) }
+  
+\ControlFlowTok{for}\NormalTok{(i }\ControlFlowTok{in} \DecValTok{1}\SpecialCharTok{:}\FunctionTok{length}\NormalTok{(myYears))\{}
+\FunctionTok{print}\NormalTok{(i)}
+
+\NormalTok{obs }\OtherTok{\textless{}{-}} \ConstantTok{NULL}
+\NormalTok{  obs }\OtherTok{\textless{}{-}}\NormalTok{ temp}\SpecialCharTok{$}\NormalTok{indicatorValues[[i]]}\SpecialCharTok{$}\NormalTok{distributionFamilyName}
+\NormalTok{  obs[}\SpecialCharTok{!}\FunctionTok{is.na}\NormalTok{(obs)] }\OtherTok{\textless{}{-}} \StringTok{"tradObs"}
+\NormalTok{  obs[}\FunctionTok{is.na}\NormalTok{(obs)]  }\OtherTok{\textless{}{-}} \StringTok{"customObs"}
+
+
+\NormalTok{myMat }\OtherTok{\textless{}{-}}\NormalTok{ NIcalc}\SpecialCharTok{::}\FunctionTok{sampleObsMat}\NormalTok{(}
+  \AttributeTok{ICunitId           =}\NormalTok{ temp}\SpecialCharTok{$}\NormalTok{indicatorValues[[i]]}\SpecialCharTok{$}\NormalTok{ICunitId, }
+  \AttributeTok{value              =}\NormalTok{ temp}\SpecialCharTok{$}\NormalTok{indicatorValues[[i]]}\SpecialCharTok{$}\NormalTok{expectedValue,}
+  \AttributeTok{distrib            =}\NormalTok{ temp}\SpecialCharTok{$}\NormalTok{indicatorValues[[i]]}\SpecialCharTok{$}\NormalTok{distributionFamilyName,}
+  \AttributeTok{mu                 =}\NormalTok{ temp}\SpecialCharTok{$}\NormalTok{indicatorValues[[i]]}\SpecialCharTok{$}\NormalTok{distParameter1,}
+  \AttributeTok{sig                =}\NormalTok{ temp}\SpecialCharTok{$}\NormalTok{indicatorValues[[i]]}\SpecialCharTok{$}\NormalTok{distParameter2,}
+  \AttributeTok{customDistribution =}\NormalTok{ temp}\SpecialCharTok{$}\NormalTok{indicatorValues[[i]]}\SpecialCharTok{$}\NormalTok{customDistribution,}
+  \AttributeTok{obsType            =}\NormalTok{ obs,}
+  \AttributeTok{nsim               =} \DecValTok{1000}
+          
+\NormalTok{)}
+
+
+\NormalTok{myMat2 }\OtherTok{\textless{}{-}} \FunctionTok{as.data.frame}\NormalTok{(myMat)}
+
+\NormalTok{myMat2 }\OtherTok{\textless{}{-}}\NormalTok{ myMat2 }\SpecialCharTok{\%\textgreater{}\%}
+\NormalTok{  tibble}\SpecialCharTok{::}\FunctionTok{add\_column}\NormalTok{(}\AttributeTok{.before=}\DecValTok{1}\NormalTok{,}
+    \AttributeTok{ICunitID =} \FunctionTok{row.names}\NormalTok{(myMat))}
+
+\NormalTok{myMat2 }\OtherTok{\textless{}{-}}\NormalTok{ myMat2 }\SpecialCharTok{\%\textgreater{}\%}
+\NormalTok{  tibble}\SpecialCharTok{::}\FunctionTok{add\_column}\NormalTok{(}\AttributeTok{.after =} \DecValTok{1}\NormalTok{,}
+    \AttributeTok{year =}\NormalTok{ myYears[i]) }
+
+\NormalTok{myMat2\_comb }\OtherTok{\textless{}{-}} \FunctionTok{rbind}\NormalTok{(myMat2\_comb, myMat2)}
+
+\NormalTok{ \}}
+
+\NormalTok{comb }\OtherTok{\textless{}{-}} \FunctionTok{rbind}\NormalTok{(myMatr, myMat2\_comb)}
+
+\NormalTok{comb }\OtherTok{\textless{}{-}}\NormalTok{ comb }\SpecialCharTok{\%\textgreater{}\%}
+\NormalTok{  tibble}\SpecialCharTok{::}\FunctionTok{add\_column}\NormalTok{(}\AttributeTok{.after =} \DecValTok{1}\NormalTok{,}
+    \AttributeTok{ICunitName =}\NormalTok{ temp2}\SpecialCharTok{$}\NormalTok{ICunits}\SpecialCharTok{$}\NormalTok{name[}\FunctionTok{match}\NormalTok{(}
+\NormalTok{      comb}\SpecialCharTok{$}\NormalTok{ICunitID, temp2}\SpecialCharTok{$}\NormalTok{ICunits}\SpecialCharTok{$}\NormalTok{id)])}
+
+\NormalTok{comb2 }\OtherTok{\textless{}{-}}\NormalTok{ comb[}\SpecialCharTok{!}\FunctionTok{is.na}\NormalTok{(comb}\SpecialCharTok{$}\NormalTok{year),]}
+\NormalTok{comb3 }\OtherTok{\textless{}{-}}\NormalTok{ comb[}\FunctionTok{is.na}\NormalTok{(comb}\SpecialCharTok{$}\NormalTok{year),]}
+\NormalTok{comb3}\SpecialCharTok{$}\NormalTok{ref\_mean }\OtherTok{\textless{}{-}} \FunctionTok{rowMeans}\NormalTok{(comb3[,}\SpecialCharTok{{-}}\FunctionTok{c}\NormalTok{(}\DecValTok{1}\SpecialCharTok{:}\DecValTok{3}\NormalTok{)])}
+
+\NormalTok{combScaled }\OtherTok{\textless{}{-}}\NormalTok{ comb2 }\SpecialCharTok{\%\textgreater{}\%}
+\NormalTok{  tidyr}\SpecialCharTok{::}\FunctionTok{pivot\_longer}\NormalTok{(}\AttributeTok{cols =} \FunctionTok{starts\_with}\NormalTok{(}\StringTok{"V"}\NormalTok{)) }
+
+\NormalTok{combScaled }\OtherTok{\textless{}{-}}\NormalTok{ combScaled }\SpecialCharTok{\%\textgreater{}\%}
+\NormalTok{  tibble}\SpecialCharTok{::}\FunctionTok{add\_column}\NormalTok{(}\AttributeTok{ref =}\NormalTok{ comb3}\SpecialCharTok{$}\NormalTok{ref\_mean[}
+    \FunctionTok{match}\NormalTok{(combScaled}\SpecialCharTok{$}\NormalTok{ICunitID, comb3}\SpecialCharTok{$}\NormalTok{ICunitID)])}
+\NormalTok{combScaled}\SpecialCharTok{$}\NormalTok{scaledIndicator }\OtherTok{\textless{}{-}}\NormalTok{ combScaled}\SpecialCharTok{$}\NormalTok{value}\SpecialCharTok{/}\NormalTok{combScaled}\SpecialCharTok{$}\NormalTok{ref}
+\NormalTok{combScaled }\OtherTok{\textless{}{-}}\NormalTok{ dplyr}\SpecialCharTok{::}\FunctionTok{select}\NormalTok{(combScaled,}
+                     \SpecialCharTok{{-}}\NormalTok{name,}
+                     \SpecialCharTok{{-}}\NormalTok{value,}
+                     \SpecialCharTok{{-}}\NormalTok{ref)}
+
+\FunctionTok{assign}\NormalTok{(}\FunctionTok{paste0}\NormalTok{(j, }\StringTok{"\_bootstrapped\_raw"}\NormalTok{), comb)}
+\FunctionTok{assign}\NormalTok{(}\FunctionTok{paste0}\NormalTok{(j, }\StringTok{"\_bootstrapped\_scaled"}\NormalTok{), combScaled)}
+
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+The reference values are also bootstrapped with uncertainties. These are coded as year = NA. We might, however, just end up using the row means.
+
+Save the files
+
+\begin{Shaded}
+\begin{Highlighting}[]
+
+\ControlFlowTok{for}\NormalTok{(i }\ControlFlowTok{in}\NormalTok{ indicator)\{}
+\NormalTok{  temp }\OtherTok{\textless{}{-}} \FunctionTok{get}\NormalTok{(}\FunctionTok{paste0}\NormalTok{(i, }\StringTok{"\_bootstrapped\_raw"}\NormalTok{))}
+\NormalTok{    temp }\OtherTok{\textless{}{-}} \FunctionTok{get}\NormalTok{(}\FunctionTok{paste0}\NormalTok{(i, }\StringTok{"\_bootstrapped\_scaled"}\NormalTok{))}
+
+  \FunctionTok{saveRDS}\NormalTok{(temp, }\FunctionTok{paste0}\NormalTok{(}\StringTok{"data/"}\NormalTok{, i, }\StringTok{"\_bootstrapped\_raw.rds"}\NormalTok{))}
+    \FunctionTok{saveRDS}\NormalTok{(temp, }\FunctionTok{paste0}\NormalTok{(}\StringTok{"data/"}\NormalTok{, i, }\StringTok{"\_bootstrapped\_scaled.rds"}\NormalTok{))}
+
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
 
 \hypertarget{cross}{%
 \chapter{Time series}\label{cross}}
 
 \hypertarget{raw-data}{%
 \section{Raw data}\label{raw-data}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(plotly)}
+\DocumentationTok{\#\# }\AlertTok{TODO}\DocumentationTok{ change to correct data source}
+\NormalTok{passerinesImport }\OtherTok{\textless{}{-}} \FunctionTok{readRDS}\NormalTok{(}\FunctionTok{paste0}\NormalTok{(here}\SpecialCharTok{::}\FunctionTok{here}\NormalTok{(), }\StringTok{"/data/passerinesImport.rds"}\NormalTok{))}
+
+\NormalTok{dat}\OtherTok{=}\NormalTok{passerinesImport}\SpecialCharTok{$}\NormalTok{indicatorObservations}\SpecialCharTok{$}\NormalTok{indicatorValues }
+
+\NormalTok{dat}\SpecialCharTok{$}\NormalTok{yearName}\OtherTok{=}\FunctionTok{as.numeric}\NormalTok{(dat}\SpecialCharTok{$}\NormalTok{yearName) }\CommentTok{\# convert character vector to numeric years}
+\NormalTok{sum\_dat}\OtherTok{=}\NormalTok{dat }\SpecialCharTok{\%\textgreater{}\%} 
+  \FunctionTok{group\_by}\NormalTok{(ICunitName, yearName) }\SpecialCharTok{\%\textgreater{}\%} 
+  \FunctionTok{summarise}\NormalTok{(}\AttributeTok{mnExpected=}\FunctionTok{mean}\NormalTok{(expectedValue, }\AttributeTok{na.rm=}\ConstantTok{TRUE}\NormalTok{),}
+            \AttributeTok{mnUpper=}\FunctionTok{mean}\NormalTok{(upperQuantile, }\AttributeTok{na.rm=}\ConstantTok{TRUE}\NormalTok{),}
+            \AttributeTok{mnLower=}\FunctionTok{mean}\NormalTok{(lowerQuantile, }\AttributeTok{na.rm=}\ConstantTok{TRUE}\NormalTok{)) }\CommentTok{\# summerise the data to mean values}
+
+\NormalTok{p}\OtherTok{=}\NormalTok{sum\_dat }\SpecialCharTok{\%\textgreater{}\%} 
+  \FunctionTok{ggplot}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\FunctionTok{as.numeric}\NormalTok{(yearName), mnExpected, }\AttributeTok{col=}\NormalTok{ICunitName))}\SpecialCharTok{+}
+  \FunctionTok{geom\_line}\NormalTok{()}\SpecialCharTok{+}
+  \FunctionTok{geom\_pointrange}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{x=}\FunctionTok{as.numeric}\NormalTok{(yearName), }\AttributeTok{y=}\NormalTok{mnExpected, }\AttributeTok{ymin=}\NormalTok{mnLower, }\AttributeTok{ymax=}\NormalTok{mnUpper))}\SpecialCharTok{+}
+  \FunctionTok{geom\_point}\NormalTok{(}\AttributeTok{data=}\NormalTok{dat, }\FunctionTok{aes}\NormalTok{(}\FunctionTok{as.numeric}\NormalTok{(yearName), expectedValue, }\AttributeTok{alpha=}\FloatTok{0.2}\NormalTok{))}\SpecialCharTok{+}
+  \FunctionTok{labs}\NormalTok{(}\AttributeTok{x=}\StringTok{"year"}\NormalTok{, }\AttributeTok{y=}\StringTok{"Expected value"}\NormalTok{)}\SpecialCharTok{+}
+  \FunctionTok{theme\_classic}\NormalTok{()}\SpecialCharTok{+}
+  \FunctionTok{theme}\NormalTok{(}\AttributeTok{text =} \FunctionTok{element\_text}\NormalTok{(}\AttributeTok{colour =} \StringTok{"\#A0A0A3"}\NormalTok{), }
+        \AttributeTok{title =} \FunctionTok{element\_text}\NormalTok{(}\AttributeTok{colour =} \StringTok{"\#FFFFFF"}\NormalTok{), }
+\AttributeTok{axis.title.x =} \FunctionTok{element\_text}\NormalTok{(}\AttributeTok{colour =} \StringTok{"\#A0A0A3"}\NormalTok{), }
+\AttributeTok{axis.title.y =} \FunctionTok{element\_text}\NormalTok{(}\AttributeTok{colour =} \StringTok{"\#A0A0A3"}\NormalTok{), }
+\AttributeTok{panel.grid.major.y =} \FunctionTok{element\_line}\NormalTok{(}\AttributeTok{colour =} \StringTok{"\#707073"}\NormalTok{, }\AttributeTok{size=}\FloatTok{0.2}\NormalTok{)) }\CommentTok{\# replace this with the correct theme}
+
+\NormalTok{p2}\OtherTok{=}\FunctionTok{ggplotly}\NormalTok{(p)}
+\NormalTok{p2 }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{layout}\NormalTok{(}
+  \AttributeTok{updatemenus =} \FunctionTok{list}\NormalTok{(}
+    \FunctionTok{list}\NormalTok{(}
+      \AttributeTok{type =} \StringTok{"list"}\NormalTok{,}
+      \AttributeTok{label =} \StringTok{\textquotesingle{}Category\textquotesingle{}}\NormalTok{,}
+      \AttributeTok{buttons =} \FunctionTok{list}\NormalTok{(}
+        \FunctionTok{list}\NormalTok{(}\AttributeTok{method =} \StringTok{"restyle"}\NormalTok{,}
+             \AttributeTok{args =} \FunctionTok{list}\NormalTok{(}\StringTok{\textquotesingle{}visible\textquotesingle{}}\NormalTok{, }\FunctionTok{c}\NormalTok{(}\ConstantTok{TRUE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{)),}
+             \AttributeTok{label =} \StringTok{"Nord{-}Norge"}\NormalTok{),}
+        \FunctionTok{list}\NormalTok{(}\AttributeTok{method =} \StringTok{"restyle"}\NormalTok{,}
+             \AttributeTok{args =} \FunctionTok{list}\NormalTok{(}\StringTok{\textquotesingle{}visible\textquotesingle{}}\NormalTok{, }\FunctionTok{c}\NormalTok{(}\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{TRUE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{)),}
+             \AttributeTok{label =} \StringTok{"Norge"}\NormalTok{),}
+        \FunctionTok{list}\NormalTok{(}\AttributeTok{method =} \StringTok{"restyle"}\NormalTok{,}
+             \AttributeTok{args =} \FunctionTok{list}\NormalTok{(}\StringTok{\textquotesingle{}visible\textquotesingle{}}\NormalTok{, }\FunctionTok{c}\NormalTok{(}\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{TRUE}\NormalTok{)),}
+             \AttributeTok{label =} \StringTok{"Sør{-}Norge"}\NormalTok{)}
+\NormalTok{      )}
+\NormalTok{    )}
+\NormalTok{  )}
+\NormalTok{) }\CommentTok{\# Add drop down menus for the data}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{02-time_series_files/figure-latex/unnamed-chunk-1-1.pdf}
 
 \hypertarget{scaled-data}{%
 \section{Scaled data}\label{scaled-data}}
@@ -159,7 +448,7 @@ The jerv (wolverine) data was downloaded using the \texttt{R/singleIndicator.R} 
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\NormalTok{jerv }\OtherTok{\textless{}{-}} \FunctionTok{readRDS}\NormalTok{(}\StringTok{"data/jerv\_assemble.rds"}\NormalTok{)}
+\NormalTok{jerv }\OtherTok{\textless{}{-}} \FunctionTok{readRDS}\NormalTok{(}\StringTok{"data/Jerv\_assemebled.rds"}\NormalTok{)}
 \end{Highlighting}
 \end{Shaded}
 
@@ -373,7 +662,6 @@ Clip it against the outline of Norway to make it look more pretty
 \FunctionTok{tmap\_arrange}\NormalTok{(one, two, }
              \AttributeTok{widths =} \FunctionTok{c}\NormalTok{(.}\DecValTok{75}\NormalTok{, .}\DecValTok{25}\NormalTok{),}
              \AttributeTok{heights =} \FunctionTok{c}\NormalTok{(}\DecValTok{1}\NormalTok{, }\FloatTok{0.5}\NormalTok{))}
-\CommentTok{\#\textgreater{} Some legend labels were too wide. These labels have been resized to 0.61, 0.53, 0.53. Increase legend.width (argument of tm\_layout) to make the legend wider and therefore the labels larger.}
 \end{Highlighting}
 \end{Shaded}
 
@@ -381,6 +669,176 @@ Clip it against the outline of Norway to make it look more pretty
 
 \hypertarget{other-figures}{%
 \chapter{Other figures}\label{other-figures}}
+
+\hypertarget{wordcloud-figures}{%
+\section{Wordcloud figures}\label{wordcloud-figures}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+
+\FunctionTok{library}\NormalTok{(wordcloud)}
+\FunctionTok{library}\NormalTok{(NIcalc)}
+\FunctionTok{library}\NormalTok{(wordcloud2)}
+\FunctionTok{library}\NormalTok{(RColorBrewer)}
+\FunctionTok{library}\NormalTok{(readxl)}
+\FunctionTok{library}\NormalTok{(dplyr)}
+\FunctionTok{library}\NormalTok{(tm)}
+\end{Highlighting}
+\end{Shaded}
+
+The following wordcloud figures show the pressure factors for each indicator, where both the color saturation and text size represent the importance of each pressure factor. Small text size and low saturation means low importance, while large text size represent pressure factors with high importance to the indicator.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+
+\CommentTok{\# Load dataset}
+\NormalTok{pressure }\OtherTok{=} \FunctionTok{read\_excel}\NormalTok{(}\StringTok{"P:/41201612\_naturindeks\_2021\_2023\_database\_og\_innsynslosning/Pilot\_Forbedring\_Innsynsløsning/R/Indikator\_paavirkning.xlsx"}\NormalTok{)}
+
+\CommentTok{\# Filter for species of interest}
+\NormalTok{pressure }\OtherTok{=}\NormalTok{ pressure }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{filter}\NormalTok{(navn\_norsk }\SpecialCharTok{==} \StringTok{"Elg"} \SpecialCharTok{|}\NormalTok{ navn\_norsk }\SpecialCharTok{==} \StringTok{"Dikesoldogg"} \SpecialCharTok{|}\NormalTok{ navn\_norsk }\SpecialCharTok{==} \StringTok{"Havørn"} \SpecialCharTok{|}\NormalTok{ navn\_norsk }\SpecialCharTok{==} \StringTok{"Lange"} \SpecialCharTok{|}\NormalTok{ navn\_norsk }\SpecialCharTok{==} \StringTok{"Jerv"} \SpecialCharTok{|}\NormalTok{ navn\_norsk }\SpecialCharTok{==} \StringTok{"Lomvi"}\NormalTok{) }\CommentTok{\# NB {-} Jerv was not included in the provided excel file}
+\NormalTok{pressure }\OtherTok{=} \FunctionTok{arrange}\NormalTok{(pressure, }\AttributeTok{by =}\NormalTok{ navn\_norsk)}
+\NormalTok{pressure }\OtherTok{=}\NormalTok{ pressure }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{rename}\NormalTok{(}\AttributeTok{PressureFactor =}\NormalTok{ Paavirkningsfaktor, }\AttributeTok{PressureValue =}\NormalTok{ FK\_PaavirkningsverdiID)}
+
+\CommentTok{\# Remove all instances of "Ikke rel/ukjent" category" and increase the value of pressure factors for better contrast in wordcloud figures}
+\NormalTok{pressure }\OtherTok{=}\NormalTok{ pressure }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{filter}\NormalTok{(PressureValue }\SpecialCharTok{!=} \DecValTok{7}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{mutate}\NormalTok{(}\AttributeTok{PressureValue =}\NormalTok{ PressureValue}\SpecialCharTok{*}\DecValTok{2}\NormalTok{) }
+
+\CommentTok{\# Create separate datasets for the different species}
+\NormalTok{dikesoldogg }\OtherTok{=}\NormalTok{ pressure }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{filter}\NormalTok{(navn\_norsk }\SpecialCharTok{==} \StringTok{"Dikesoldogg"}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%}\NormalTok{ dplyr}\SpecialCharTok{::}\FunctionTok{select}\NormalTok{(PressureFactor, PressureValue)}
+
+\NormalTok{elg }\OtherTok{=}\NormalTok{ pressure }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{filter}\NormalTok{(navn\_norsk }\SpecialCharTok{==} \StringTok{"Elg"}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%}\NormalTok{ dplyr}\SpecialCharTok{::}\FunctionTok{select}\NormalTok{(PressureFactor, PressureValue)}
+
+\NormalTok{havørn }\OtherTok{=}\NormalTok{ pressure }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{filter}\NormalTok{(navn\_norsk }\SpecialCharTok{==} \StringTok{"Havørn"}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%}\NormalTok{ dplyr}\SpecialCharTok{::}\FunctionTok{select}\NormalTok{(PressureFactor, PressureValue)}
+
+\NormalTok{lange }\OtherTok{=}\NormalTok{ pressure }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{filter}\NormalTok{(navn\_norsk }\SpecialCharTok{==} \StringTok{"Lange"}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%}\NormalTok{ dplyr}\SpecialCharTok{::}\FunctionTok{select}\NormalTok{(PressureFactor, PressureValue)}
+
+\NormalTok{lomvi }\OtherTok{=}\NormalTok{ pressure }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{filter}\NormalTok{(navn\_norsk }\SpecialCharTok{==} \StringTok{"Lomvi"}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%}\NormalTok{ dplyr}\SpecialCharTok{::}\FunctionTok{select}\NormalTok{(PressureFactor, PressureValue)}
+
+\CommentTok{\# Create a custom color gradient (green in this case)}
+\NormalTok{pressureColors }\OtherTok{=} \FunctionTok{c}\NormalTok{(}\StringTok{"\#bde4aa"}\NormalTok{, }\StringTok{"\#addb9d"}\NormalTok{, }\StringTok{"\#9cd28f"}\NormalTok{, }\StringTok{"\#8cc982"}\NormalTok{, }\StringTok{"\#7dc275"}\NormalTok{, }\StringTok{"\#6cb967"}\NormalTok{, }\StringTok{"\#5db15a"}\NormalTok{, }\StringTok{"\#50a54e"}\NormalTok{, }\StringTok{"\#479845"}\NormalTok{, }\StringTok{"\#3f8c3b"}\NormalTok{, }\StringTok{"\#367e31"}\NormalTok{, }\StringTok{"\#2e7228"}\NormalTok{, }\StringTok{"\#25661f"}\NormalTok{) }
+\end{Highlighting}
+\end{Shaded}
+
+\hypertarget{the-most-important-pressure-factors-for-dikesoldogg-oblong-leaved-sundew}{%
+\section{The most important pressure factors for dikesoldogg (oblong-leaved sundew)}\label{the-most-important-pressure-factors-for-dikesoldogg-oblong-leaved-sundew}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+
+\CommentTok{\# Dikesoldogg}
+\FunctionTok{wordcloud}\NormalTok{(}\AttributeTok{words =}\NormalTok{ dikesoldogg}\SpecialCharTok{$}\NormalTok{PressureFactor, }\AttributeTok{freq =}\NormalTok{ dikesoldogg}\SpecialCharTok{$}\NormalTok{PressureValue, }\AttributeTok{min.freq =} \DecValTok{1}\NormalTok{, }\AttributeTok{max.words =} \DecValTok{200}\NormalTok{, }\AttributeTok{random.order =} \ConstantTok{FALSE}\NormalTok{, }\AttributeTok{rot.per =} \FloatTok{0.35}\NormalTok{, }\AttributeTok{colors =}\NormalTok{ pressureColors, }\AttributeTok{scale =} \FunctionTok{c}\NormalTok{(}\FloatTok{1.5}\NormalTok{, }\FloatTok{0.5}\NormalTok{)) }\CommentTok{\# use rot.per to set the percentage of words that are at a 90 degree angle}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{04-other_figures_files/figure-latex/Wordcloud - Dikesoldogg-1.pdf}
+
+\hypertarget{the-most-important-pressure-factors-for-elg-moose}{%
+\section{The most important pressure factors for elg (Moose)}\label{the-most-important-pressure-factors-for-elg-moose}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+
+\FunctionTok{wordcloud}\NormalTok{(}\AttributeTok{words =}\NormalTok{ elg}\SpecialCharTok{$}\NormalTok{PressureFactor, }\AttributeTok{freq =}\NormalTok{ elg}\SpecialCharTok{$}\NormalTok{PressureValue, }\AttributeTok{min.freq =} \DecValTok{1}\NormalTok{, }\AttributeTok{max.words =} \DecValTok{200}\NormalTok{, }\AttributeTok{random.order =} \ConstantTok{FALSE}\NormalTok{, }\AttributeTok{rot.per =} \FloatTok{0.35}\NormalTok{, }\AttributeTok{colors =}\NormalTok{ pressureColors, }\AttributeTok{scale =} \FunctionTok{c}\NormalTok{(}\FloatTok{1.5}\NormalTok{, }\FloatTok{0.5}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{04-other_figures_files/figure-latex/Wordcloud - Elg-1.pdf}
+
+\hypertarget{the-most-important-pressure-factors-for-havuxf8rn-white-tailed-eagle}{%
+\section{The most important pressure factors for havørn (White-tailed eagle)}\label{the-most-important-pressure-factors-for-havuxf8rn-white-tailed-eagle}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+
+\FunctionTok{wordcloud}\NormalTok{(}\AttributeTok{words =}\NormalTok{ havørn}\SpecialCharTok{$}\NormalTok{PressureFactor, }\AttributeTok{freq =}\NormalTok{ havørn}\SpecialCharTok{$}\NormalTok{PressureValue, }\AttributeTok{min.freq =} \DecValTok{1}\NormalTok{, }\AttributeTok{max.words =} \DecValTok{200}\NormalTok{, }\AttributeTok{random.order =} \ConstantTok{FALSE}\NormalTok{, }\AttributeTok{rot.per =} \FloatTok{0.35}\NormalTok{, }\AttributeTok{colors =}\NormalTok{ pressureColors, }\AttributeTok{scale =} \FunctionTok{c}\NormalTok{(}\FloatTok{1.5}\NormalTok{, }\FloatTok{0.5}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{04-other_figures_files/figure-latex/Wordcloud - Havørn-1.pdf}
+
+\hypertarget{the-most-important-pressure-factors-for-lange-common-ling}{%
+\section{The most important pressure factors for Lange (Common ling)}\label{the-most-important-pressure-factors-for-lange-common-ling}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+
+\FunctionTok{wordcloud}\NormalTok{(}\AttributeTok{words =}\NormalTok{ lange}\SpecialCharTok{$}\NormalTok{PressureFactor, }\AttributeTok{freq =}\NormalTok{ lange}\SpecialCharTok{$}\NormalTok{PressureValue, }\AttributeTok{min.freq =} \DecValTok{1}\NormalTok{, }\AttributeTok{max.words =} \DecValTok{200}\NormalTok{, }\AttributeTok{random.order =} \ConstantTok{FALSE}\NormalTok{, }\AttributeTok{rot.per =} \FloatTok{0.35}\NormalTok{, }\AttributeTok{colors =}\NormalTok{ pressureColors, }\AttributeTok{scale =} \FunctionTok{c}\NormalTok{(}\FloatTok{1.5}\NormalTok{, }\FloatTok{0.5}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{04-other_figures_files/figure-latex/Wordcloud - Lange-1.pdf}
+
+\hypertarget{the-most-important-pressure-factors-for-lomvi-common-guillemot}{%
+\section{The most important pressure factors for Lomvi (common guillemot)}\label{the-most-important-pressure-factors-for-lomvi-common-guillemot}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+
+\FunctionTok{wordcloud}\NormalTok{(}\AttributeTok{words =}\NormalTok{ lomvi}\SpecialCharTok{$}\NormalTok{PressureFactor, }\AttributeTok{freq =}\NormalTok{ lomvi}\SpecialCharTok{$}\NormalTok{PressureValue, }\AttributeTok{min.freq =} \DecValTok{1}\NormalTok{, }\AttributeTok{max.words =} \DecValTok{200}\NormalTok{, }\AttributeTok{random.order =} \ConstantTok{FALSE}\NormalTok{, }\AttributeTok{rot.per =} \FloatTok{0.35}\NormalTok{, }\AttributeTok{colors =}\NormalTok{ pressureColors, }\AttributeTok{scale =} \FunctionTok{c}\NormalTok{(}\FloatTok{1.5}\NormalTok{, }\FloatTok{0.5}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{04-other_figures_files/figure-latex/Wordcloud - Lomvi-1.pdf}
+
+\hypertarget{data-type}{%
+\section{Data type}\label{data-type}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{source}\NormalTok{(}\StringTok{"R/colorPalettes.R"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\#Elg datatyper}
+\NormalTok{data }\OtherTok{\textless{}{-}} \FunctionTok{data.frame}\NormalTok{(}
+  \AttributeTok{category=}\FunctionTok{c}\NormalTok{(}\StringTok{"Ekspert"}\NormalTok{, }
+             \StringTok{"Modeller"}\NormalTok{, }
+             \StringTok{"Overvåkning"}\NormalTok{),}
+  \AttributeTok{count=}\FunctionTok{c}\NormalTok{(}\FloatTok{4.9}\NormalTok{, }\FloatTok{95.1}\NormalTok{, }\DecValTok{0}\NormalTok{)}
+\NormalTok{)}
+
+\CommentTok{\# load library}
+\FunctionTok{library}\NormalTok{(tidyverse)}
+\CommentTok{\#\textgreater{} {-}{-} Attaching packages {-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-} tidyverse 1.3.1 {-}{-}}
+\CommentTok{\#\textgreater{} v ggplot2 3.3.5     v purrr   0.3.4}
+\CommentTok{\#\textgreater{} v tibble  3.1.6     v stringr 1.4.0}
+\CommentTok{\#\textgreater{} v tidyr   1.2.0     v forcats 0.5.1}
+\CommentTok{\#\textgreater{} v readr   2.1.2}
+\CommentTok{\#\textgreater{} {-}{-} Conflicts {-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-} tidyverse\_conflicts() {-}{-}}
+\CommentTok{\#\textgreater{} x ggplot2::annotate() masks NLP::annotate()}
+\CommentTok{\#\textgreater{} x dplyr::filter()     masks stats::filter()}
+\CommentTok{\#\textgreater{} x dplyr::lag()        masks stats::lag()}
+\CommentTok{\# Compute percentages}
+\NormalTok{data}\SpecialCharTok{$}\NormalTok{fraction }\OtherTok{\textless{}{-}}\NormalTok{ data}\SpecialCharTok{$}\NormalTok{count }\SpecialCharTok{/} \FunctionTok{sum}\NormalTok{(data}\SpecialCharTok{$}\NormalTok{count)}
+
+\CommentTok{\# Compute the cumulative percentages (top of each rectangle)}
+\NormalTok{data}\SpecialCharTok{$}\NormalTok{ymax }\OtherTok{\textless{}{-}} \FunctionTok{cumsum}\NormalTok{(data}\SpecialCharTok{$}\NormalTok{fraction)}
+
+\CommentTok{\# Compute the bottom of each rectangle}
+\NormalTok{data}\SpecialCharTok{$}\NormalTok{ymin }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{, }\FunctionTok{head}\NormalTok{(data}\SpecialCharTok{$}\NormalTok{ymax, }\AttributeTok{n=}\SpecialCharTok{{-}}\DecValTok{1}\NormalTok{))}
+
+\CommentTok{\# Compute label position}
+\NormalTok{data}\SpecialCharTok{$}\NormalTok{labelPosition }\OtherTok{\textless{}{-}}\NormalTok{ (data}\SpecialCharTok{$}\NormalTok{ymax }\SpecialCharTok{+}\NormalTok{ data}\SpecialCharTok{$}\NormalTok{ymin) }\SpecialCharTok{/} \DecValTok{2}
+\NormalTok{data}\SpecialCharTok{$}\NormalTok{labelPosition[}\DecValTok{3}\NormalTok{]}\OtherTok{\textless{}{-}}\FloatTok{0.8}
+\CommentTok{\# Compute a good label}
+\NormalTok{data}\SpecialCharTok{$}\NormalTok{label }\OtherTok{\textless{}{-}} \FunctionTok{paste0}\NormalTok{(data}\SpecialCharTok{$}\NormalTok{category, }\StringTok{"}\SpecialCharTok{\textbackslash{}n}\StringTok{ "}\NormalTok{, data}\SpecialCharTok{$}\NormalTok{count, }\StringTok{" \%"}\NormalTok{)}
+\FunctionTok{library}\NormalTok{(ggrepel)}
+\CommentTok{\#\textgreater{} Warning: package \textquotesingle{}ggrepel\textquotesingle{} was built under R version 4.1.3}
+\CommentTok{\# Make the plot}
+\FunctionTok{ggplot}\NormalTok{(data, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{ymax=}\NormalTok{ymax, }\AttributeTok{ymin=}\NormalTok{ymin, }\AttributeTok{xmax=}\DecValTok{4}\NormalTok{, }\AttributeTok{xmin=}\DecValTok{3}\NormalTok{, }\AttributeTok{fill=}\NormalTok{category)) }\SpecialCharTok{+}
+  \FunctionTok{geom\_rect}\NormalTok{() }\SpecialCharTok{+}
+  \FunctionTok{geom\_text}\NormalTok{(}\AttributeTok{x=}\DecValTok{2}\NormalTok{, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{y=}\NormalTok{labelPosition, }\AttributeTok{label=}\NormalTok{label, }\AttributeTok{color=}\NormalTok{category), }\AttributeTok{size=}\FloatTok{2.5}\NormalTok{) }\SpecialCharTok{+} \CommentTok{\# x here controls label position (inner / outer)}
+  \FunctionTok{scale\_fill\_NIviz\_d}\NormalTok{(}\StringTok{"IndMap\_cols"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{scale\_colour\_NIviz\_d}\NormalTok{(}\StringTok{"IndMap\_cols"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{coord\_polar}\NormalTok{(}\AttributeTok{theta=}\StringTok{"y"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{xlim}\NormalTok{(}\FunctionTok{c}\NormalTok{(}\SpecialCharTok{{-}}\DecValTok{1}\NormalTok{, }\DecValTok{4}\NormalTok{)) }\SpecialCharTok{+}
+  \FunctionTok{theme\_void}\NormalTok{() }\SpecialCharTok{+}
+  \FunctionTok{theme}\NormalTok{(}\AttributeTok{legend.position =} \StringTok{"none"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{04-other_figures_files/figure-latex/unnamed-chunk-2-1.pdf}
 
   \bibliography{book.bib,packages.bib}
 
