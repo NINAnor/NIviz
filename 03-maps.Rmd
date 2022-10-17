@@ -1,5 +1,10 @@
 # Maps
 
+```{r setup, echo=FALSE, message=FALSE, warning=FALSE}
+source("R/colorPalettes.R")
+source("R/ggplotTheme.R")
+```
+
 
 ## Raw data
 

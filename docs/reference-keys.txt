@@ -1,5 +1,6 @@
 fig:unnamed-chunk-7
 introduction
+downloading-and-preparing-example-data
 cross
 raw-data
 scaled-data
@@ -7,5 +8,15 @@ maps
 raw-data-1
 scaled-data-1
 jerv
+prepare-ni-data
+get-geometries
+link-data-and-geometries
 other-figures
+ecosystem-fidelity
+wordcloud-figures
+the-most-important-pressure-factors-for-dikesoldogg-oblong-leaved-sundew
+the-most-important-pressure-factors-for-elg-moose
+the-most-important-pressure-factors-for-havørn-white-tailed-eagle
+the-most-important-pressure-factors-for-lange-common-ling
+the-most-important-pressure-factors-for-lomvi-common-guillemot
 data-type

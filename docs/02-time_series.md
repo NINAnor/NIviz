@@ -1,12 +1,17 @@
 # Time series {#cross}
 
+
+
+
+
+
 ## Raw data
 
 
 ```r
 library(plotly)
 ## TODO change to correct data source
-passerinesImport <- readRDS(paste0(here::here(), "/data/passerinesImport.rds"))
+passerinesImport <- readRDS("data/passerinesImport.rds")
 
 dat=passerinesImport$indicatorObservations$indicatorValues 
 
@@ -23,13 +28,7 @@ p=sum_dat %>%
   geom_pointrange(aes(x=as.numeric(yearName), y=mnExpected, ymin=mnLower, ymax=mnUpper))+
   geom_point(data=dat, aes(as.numeric(yearName), expectedValue, alpha=0.2))+
   labs(x="year", y="Expected value")+
-  theme_classic()+
-  theme(text = element_text(colour = "#A0A0A3"), 
-        title = element_text(colour = "#FFFFFF"), 
-axis.title.x = element_text(colour = "#A0A0A3"), 
-axis.title.y = element_text(colour = "#A0A0A3"), 
-panel.grid.major.y = element_line(colour = "#707073", size=0.2)) # replace this with the correct theme
-
+  theme_NIseries()
 p2=ggplotly(p)
 p2 %>% layout(
   updatemenus = list(
@@ -52,6 +51,100 @@ p2 %>% layout(
 ) # Add drop down menus for the data
 ```
 
-![](02-time_series_files/figure-epub3/unnamed-chunk-1-1.png)<!-- -->
+![](02-time_series_files/figure-epub3/raw data-1.png)<!-- -->
 
 ## Scaled data
+
+
+
+```r
+Elg_assemebled<- readRDS("data/Elg_assemebled.rds")
+mycols=c("ICunitName" ,"yearName", "expectedValue","lowerQuantile", "upperQuantile")
+
+data_list<-lapply(Elg_assemebled$indicatorValues, function(x) x%>% select(mycols))
+
+dat<-bind_rows(data_list, .id = "column_label")
+
+# plot
+sum_dat=dat %>% 
+  group_by(ICunitName, yearName) %>% 
+  summarise(mnExpected=mean(expectedValue, na.rm=TRUE),
+            mnUpper=mean(upperQuantile, na.rm=TRUE),
+            mnLower=mean(lowerQuantile, na.rm=TRUE)) # summerise the data to mean values
+source("R/ggplotTheme.R")
+p=sum_dat %>% 
+  ggplot(aes(as.numeric(yearName), mnExpected, col=ICunitName))+
+  geom_line()+
+  geom_pointrange(aes(x=as.numeric(yearName), y=mnExpected, ymin=mnLower, ymax=mnUpper))+
+  geom_point(data=dat, aes(as.numeric(yearName), expectedValue, alpha=0.2))+
+  labs(x="year", y="Expected value")+
+  theme_NIseries()
+p2=ggplotly(p)
+p2 %>% layout(
+  updatemenus = list(
+    list(
+      type = "list",
+      label = 'Category',
+      buttons = list(
+        list(method = "restyle",
+             args = list('visible', c(TRUE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE)),
+             label = unique(dat$ICunitName)[2]),
+        list(method = "restyle",
+             args = list('visible', c(FALSE, TRUE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE)),
+             label = unique(dat$ICunitName)[8]),
+        list(method = "restyle",
+             args = list('visible', c(FALSE, FALSE,TRUE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE)),
+             label = unique(dat$ICunitName)[5]),
+        list(method = "restyle",
+             args = list('visible', c( FALSE, FALSE, FALSE,TRUE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE)),
+             label = unique(dat$ICunitName)[18]),
+        list(method = "restyle",
+             args = list('visible', c(FALSE, FALSE, FALSE,FALSE, TRUE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE)),
+             label = unique(dat$ICunitName)[3]),
+        list(method = "restyle",
+             args = list('visible', c( FALSE, FALSE, FALSE,FALSE, FALSE, TRUE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE)),
+             label = unique(dat$ICunitName)[11]),
+        list(method = "restyle",
+             args = list('visible', c( FALSE, FALSE, FALSE,FALSE, FALSE, FALSE, TRUE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE)),
+             label = unique(dat$ICunitName)[13]),
+        list(method = "restyle",
+             args = list('visible', c( FALSE, FALSE, FALSE,FALSE, FALSE, FALSE, FALSE, TRUE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE)),
+             label = unique(dat$ICunitName)[15]),
+        list(method = "restyle",
+             args = list('visible', c( FALSE, FALSE, FALSE,FALSE, FALSE, FALSE, FALSE, FALSE, TRUE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE)),
+             label = unique(dat$ICunitName)[16]),
+        list(method = "restyle",
+             args = list('visible', c( FALSE, FALSE, FALSE,FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, TRUE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE)),
+             label = unique(dat$ICunitName)[4]),
+        list(method = "restyle",
+             args = list('visible', c( FALSE, FALSE, FALSE,FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, TRUE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE)),
+             label = unique(dat$ICunitName)[10]),
+        list(method = "restyle",
+             args = list('visible', c( FALSE, FALSE, FALSE,FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, TRUE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE)),
+             label = unique(dat$ICunitName)[12]),
+        list(method = "restyle",
+             args = list('visible', c( FALSE, FALSE, FALSE,FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, TRUE, FALSE, FALSE, FALSE, FALSE, FALSE)),
+             label = unique(dat$ICunitName)[14]),
+        list(method = "restyle",
+             args = list('visible', c( FALSE, FALSE, FALSE,FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, TRUE, FALSE, FALSE, FALSE, FALSE)),
+             label = unique(dat$ICunitName)[7]),
+        list(method = "restyle",
+             args = list('visible', c( FALSE, FALSE, FALSE,FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, TRUE, FALSE, FALSE, FALSE)),
+             label = unique(dat$ICunitName)[17]),
+        list(method = "restyle",
+             args = list('visible', c( FALSE, FALSE, FALSE,FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, TRUE, FALSE, FALSE)),
+             label = unique(dat$ICunitName)[9]),
+        list(method = "restyle",
+             args = list('visible', c( FALSE, FALSE, FALSE,FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, TRUE, FALSE)),
+             label = unique(dat$ICunitName)[6]),
+        list(method = "restyle",
+             args = list('visible', c( FALSE, FALSE, FALSE,FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, TRUE)),
+             label = unique(dat$ICunitName)[1])
+      )
+    )
+  )
+) # Add drop down menus for the data
+```
+
+![](02-time_series_files/figure-epub3/scaled data-1.png)<!-- -->
+

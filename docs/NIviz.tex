@@ -33,6 +33,13 @@
   \KOMAoptions{parskip=half}}
 \makeatother
 \usepackage{xcolor}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
+\hypersetup{
+  pdftitle={NIvis},
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+\urlstyle{same} % disable monospaced font for URLs
 \usepackage{color}
 \usepackage{fancyvrb}
 \newcommand{\VerbBar}{|}
@@ -106,17 +113,10 @@
 \fi
 \usepackage[]{natbib}
 \bibliographystyle{apalike}
-\IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
-\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
-\urlstyle{same} % disable monospaced font for URLs
-\hypersetup{
-  pdftitle={NIvis},
-  hidelinks,
-  pdfcreator={LaTeX via pandoc}}
 
 \title{NIvis}
 \author{}
-\date{\vspace{-2.5em}2022-10-14}
+\date{\vspace{-2.5em}2022-10-17}
 
 \begin{document}
 \maketitle
@@ -377,7 +377,7 @@ Save the files
 \begin{Highlighting}[]
 \FunctionTok{library}\NormalTok{(plotly)}
 \DocumentationTok{\#\# }\AlertTok{TODO}\DocumentationTok{ change to correct data source}
-\NormalTok{passerinesImport }\OtherTok{\textless{}{-}} \FunctionTok{readRDS}\NormalTok{(}\FunctionTok{paste0}\NormalTok{(here}\SpecialCharTok{::}\FunctionTok{here}\NormalTok{(), }\StringTok{"/data/passerinesImport.rds"}\NormalTok{))}
+\NormalTok{passerinesImport }\OtherTok{\textless{}{-}} \FunctionTok{readRDS}\NormalTok{(}\StringTok{"data/passerinesImport.rds"}\NormalTok{)}
 
 \NormalTok{dat}\OtherTok{=}\NormalTok{passerinesImport}\SpecialCharTok{$}\NormalTok{indicatorObservations}\SpecialCharTok{$}\NormalTok{indicatorValues }
 
@@ -394,13 +394,7 @@ Save the files
   \FunctionTok{geom\_pointrange}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{x=}\FunctionTok{as.numeric}\NormalTok{(yearName), }\AttributeTok{y=}\NormalTok{mnExpected, }\AttributeTok{ymin=}\NormalTok{mnLower, }\AttributeTok{ymax=}\NormalTok{mnUpper))}\SpecialCharTok{+}
   \FunctionTok{geom\_point}\NormalTok{(}\AttributeTok{data=}\NormalTok{dat, }\FunctionTok{aes}\NormalTok{(}\FunctionTok{as.numeric}\NormalTok{(yearName), expectedValue, }\AttributeTok{alpha=}\FloatTok{0.2}\NormalTok{))}\SpecialCharTok{+}
   \FunctionTok{labs}\NormalTok{(}\AttributeTok{x=}\StringTok{"year"}\NormalTok{, }\AttributeTok{y=}\StringTok{"Expected value"}\NormalTok{)}\SpecialCharTok{+}
-  \FunctionTok{theme\_classic}\NormalTok{()}\SpecialCharTok{+}
-  \FunctionTok{theme}\NormalTok{(}\AttributeTok{text =} \FunctionTok{element\_text}\NormalTok{(}\AttributeTok{colour =} \StringTok{"\#A0A0A3"}\NormalTok{), }
-        \AttributeTok{title =} \FunctionTok{element\_text}\NormalTok{(}\AttributeTok{colour =} \StringTok{"\#FFFFFF"}\NormalTok{), }
-\AttributeTok{axis.title.x =} \FunctionTok{element\_text}\NormalTok{(}\AttributeTok{colour =} \StringTok{"\#A0A0A3"}\NormalTok{), }
-\AttributeTok{axis.title.y =} \FunctionTok{element\_text}\NormalTok{(}\AttributeTok{colour =} \StringTok{"\#A0A0A3"}\NormalTok{), }
-\AttributeTok{panel.grid.major.y =} \FunctionTok{element\_line}\NormalTok{(}\AttributeTok{colour =} \StringTok{"\#707073"}\NormalTok{, }\AttributeTok{size=}\FloatTok{0.2}\NormalTok{)) }\CommentTok{\# replace this with the correct theme}
-
+  \FunctionTok{theme\_NIseries}\NormalTok{()}
 \NormalTok{p2}\OtherTok{=}\FunctionTok{ggplotly}\NormalTok{(p)}
 \NormalTok{p2 }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{layout}\NormalTok{(}
   \AttributeTok{updatemenus =} \FunctionTok{list}\NormalTok{(}
@@ -424,10 +418,103 @@ Save the files
 \end{Highlighting}
 \end{Shaded}
 
-\includegraphics{02-time_series_files/figure-latex/unnamed-chunk-1-1.pdf}
+\includegraphics{02-time_series_files/figure-latex/raw data-1.pdf}
 
 \hypertarget{scaled-data}{%
 \section{Scaled data}\label{scaled-data}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{Elg\_assemebled}\OtherTok{\textless{}{-}} \FunctionTok{readRDS}\NormalTok{(}\StringTok{"data/Elg\_assemebled.rds"}\NormalTok{)}
+\NormalTok{mycols}\OtherTok{=}\FunctionTok{c}\NormalTok{(}\StringTok{"ICunitName"}\NormalTok{ ,}\StringTok{"yearName"}\NormalTok{, }\StringTok{"expectedValue"}\NormalTok{,}\StringTok{"lowerQuantile"}\NormalTok{, }\StringTok{"upperQuantile"}\NormalTok{)}
+
+\NormalTok{data\_list}\OtherTok{\textless{}{-}}\FunctionTok{lapply}\NormalTok{(Elg\_assemebled}\SpecialCharTok{$}\NormalTok{indicatorValues, }\ControlFlowTok{function}\NormalTok{(x) x}\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{select}\NormalTok{(mycols))}
+
+\NormalTok{dat}\OtherTok{\textless{}{-}}\FunctionTok{bind\_rows}\NormalTok{(data\_list, }\AttributeTok{.id =} \StringTok{"column\_label"}\NormalTok{)}
+
+\CommentTok{\# plot}
+\NormalTok{sum\_dat}\OtherTok{=}\NormalTok{dat }\SpecialCharTok{\%\textgreater{}\%} 
+  \FunctionTok{group\_by}\NormalTok{(ICunitName, yearName) }\SpecialCharTok{\%\textgreater{}\%} 
+  \FunctionTok{summarise}\NormalTok{(}\AttributeTok{mnExpected=}\FunctionTok{mean}\NormalTok{(expectedValue, }\AttributeTok{na.rm=}\ConstantTok{TRUE}\NormalTok{),}
+            \AttributeTok{mnUpper=}\FunctionTok{mean}\NormalTok{(upperQuantile, }\AttributeTok{na.rm=}\ConstantTok{TRUE}\NormalTok{),}
+            \AttributeTok{mnLower=}\FunctionTok{mean}\NormalTok{(lowerQuantile, }\AttributeTok{na.rm=}\ConstantTok{TRUE}\NormalTok{)) }\CommentTok{\# summerise the data to mean values}
+\FunctionTok{source}\NormalTok{(}\StringTok{"R/ggplotTheme.R"}\NormalTok{)}
+\NormalTok{p}\OtherTok{=}\NormalTok{sum\_dat }\SpecialCharTok{\%\textgreater{}\%} 
+  \FunctionTok{ggplot}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\FunctionTok{as.numeric}\NormalTok{(yearName), mnExpected, }\AttributeTok{col=}\NormalTok{ICunitName))}\SpecialCharTok{+}
+  \FunctionTok{geom\_line}\NormalTok{()}\SpecialCharTok{+}
+  \FunctionTok{geom\_pointrange}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{x=}\FunctionTok{as.numeric}\NormalTok{(yearName), }\AttributeTok{y=}\NormalTok{mnExpected, }\AttributeTok{ymin=}\NormalTok{mnLower, }\AttributeTok{ymax=}\NormalTok{mnUpper))}\SpecialCharTok{+}
+  \FunctionTok{geom\_point}\NormalTok{(}\AttributeTok{data=}\NormalTok{dat, }\FunctionTok{aes}\NormalTok{(}\FunctionTok{as.numeric}\NormalTok{(yearName), expectedValue, }\AttributeTok{alpha=}\FloatTok{0.2}\NormalTok{))}\SpecialCharTok{+}
+  \FunctionTok{labs}\NormalTok{(}\AttributeTok{x=}\StringTok{"year"}\NormalTok{, }\AttributeTok{y=}\StringTok{"Expected value"}\NormalTok{)}\SpecialCharTok{+}
+  \FunctionTok{theme\_NIseries}\NormalTok{()}
+\NormalTok{p2}\OtherTok{=}\FunctionTok{ggplotly}\NormalTok{(p)}
+\NormalTok{p2 }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{layout}\NormalTok{(}
+  \AttributeTok{updatemenus =} \FunctionTok{list}\NormalTok{(}
+    \FunctionTok{list}\NormalTok{(}
+      \AttributeTok{type =} \StringTok{"list"}\NormalTok{,}
+      \AttributeTok{label =} \StringTok{\textquotesingle{}Category\textquotesingle{}}\NormalTok{,}
+      \AttributeTok{buttons =} \FunctionTok{list}\NormalTok{(}
+        \FunctionTok{list}\NormalTok{(}\AttributeTok{method =} \StringTok{"restyle"}\NormalTok{,}
+             \AttributeTok{args =} \FunctionTok{list}\NormalTok{(}\StringTok{\textquotesingle{}visible\textquotesingle{}}\NormalTok{, }\FunctionTok{c}\NormalTok{(}\ConstantTok{TRUE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{)),}
+             \AttributeTok{label =} \FunctionTok{unique}\NormalTok{(dat}\SpecialCharTok{$}\NormalTok{ICunitName)[}\DecValTok{2}\NormalTok{]),}
+        \FunctionTok{list}\NormalTok{(}\AttributeTok{method =} \StringTok{"restyle"}\NormalTok{,}
+             \AttributeTok{args =} \FunctionTok{list}\NormalTok{(}\StringTok{\textquotesingle{}visible\textquotesingle{}}\NormalTok{, }\FunctionTok{c}\NormalTok{(}\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{TRUE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{)),}
+             \AttributeTok{label =} \FunctionTok{unique}\NormalTok{(dat}\SpecialCharTok{$}\NormalTok{ICunitName)[}\DecValTok{8}\NormalTok{]),}
+        \FunctionTok{list}\NormalTok{(}\AttributeTok{method =} \StringTok{"restyle"}\NormalTok{,}
+             \AttributeTok{args =} \FunctionTok{list}\NormalTok{(}\StringTok{\textquotesingle{}visible\textquotesingle{}}\NormalTok{, }\FunctionTok{c}\NormalTok{(}\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{,}\ConstantTok{TRUE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{)),}
+             \AttributeTok{label =} \FunctionTok{unique}\NormalTok{(dat}\SpecialCharTok{$}\NormalTok{ICunitName)[}\DecValTok{5}\NormalTok{]),}
+        \FunctionTok{list}\NormalTok{(}\AttributeTok{method =} \StringTok{"restyle"}\NormalTok{,}
+             \AttributeTok{args =} \FunctionTok{list}\NormalTok{(}\StringTok{\textquotesingle{}visible\textquotesingle{}}\NormalTok{, }\FunctionTok{c}\NormalTok{( }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{,}\ConstantTok{TRUE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{)),}
+             \AttributeTok{label =} \FunctionTok{unique}\NormalTok{(dat}\SpecialCharTok{$}\NormalTok{ICunitName)[}\DecValTok{18}\NormalTok{]),}
+        \FunctionTok{list}\NormalTok{(}\AttributeTok{method =} \StringTok{"restyle"}\NormalTok{,}
+             \AttributeTok{args =} \FunctionTok{list}\NormalTok{(}\StringTok{\textquotesingle{}visible\textquotesingle{}}\NormalTok{, }\FunctionTok{c}\NormalTok{(}\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{,}\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{TRUE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{)),}
+             \AttributeTok{label =} \FunctionTok{unique}\NormalTok{(dat}\SpecialCharTok{$}\NormalTok{ICunitName)[}\DecValTok{3}\NormalTok{]),}
+        \FunctionTok{list}\NormalTok{(}\AttributeTok{method =} \StringTok{"restyle"}\NormalTok{,}
+             \AttributeTok{args =} \FunctionTok{list}\NormalTok{(}\StringTok{\textquotesingle{}visible\textquotesingle{}}\NormalTok{, }\FunctionTok{c}\NormalTok{( }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{,}\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{TRUE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{)),}
+             \AttributeTok{label =} \FunctionTok{unique}\NormalTok{(dat}\SpecialCharTok{$}\NormalTok{ICunitName)[}\DecValTok{11}\NormalTok{]),}
+        \FunctionTok{list}\NormalTok{(}\AttributeTok{method =} \StringTok{"restyle"}\NormalTok{,}
+             \AttributeTok{args =} \FunctionTok{list}\NormalTok{(}\StringTok{\textquotesingle{}visible\textquotesingle{}}\NormalTok{, }\FunctionTok{c}\NormalTok{( }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{,}\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{TRUE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{)),}
+             \AttributeTok{label =} \FunctionTok{unique}\NormalTok{(dat}\SpecialCharTok{$}\NormalTok{ICunitName)[}\DecValTok{13}\NormalTok{]),}
+        \FunctionTok{list}\NormalTok{(}\AttributeTok{method =} \StringTok{"restyle"}\NormalTok{,}
+             \AttributeTok{args =} \FunctionTok{list}\NormalTok{(}\StringTok{\textquotesingle{}visible\textquotesingle{}}\NormalTok{, }\FunctionTok{c}\NormalTok{( }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{,}\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{TRUE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{)),}
+             \AttributeTok{label =} \FunctionTok{unique}\NormalTok{(dat}\SpecialCharTok{$}\NormalTok{ICunitName)[}\DecValTok{15}\NormalTok{]),}
+        \FunctionTok{list}\NormalTok{(}\AttributeTok{method =} \StringTok{"restyle"}\NormalTok{,}
+             \AttributeTok{args =} \FunctionTok{list}\NormalTok{(}\StringTok{\textquotesingle{}visible\textquotesingle{}}\NormalTok{, }\FunctionTok{c}\NormalTok{( }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{,}\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{TRUE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{)),}
+             \AttributeTok{label =} \FunctionTok{unique}\NormalTok{(dat}\SpecialCharTok{$}\NormalTok{ICunitName)[}\DecValTok{16}\NormalTok{]),}
+        \FunctionTok{list}\NormalTok{(}\AttributeTok{method =} \StringTok{"restyle"}\NormalTok{,}
+             \AttributeTok{args =} \FunctionTok{list}\NormalTok{(}\StringTok{\textquotesingle{}visible\textquotesingle{}}\NormalTok{, }\FunctionTok{c}\NormalTok{( }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{,}\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{TRUE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{)),}
+             \AttributeTok{label =} \FunctionTok{unique}\NormalTok{(dat}\SpecialCharTok{$}\NormalTok{ICunitName)[}\DecValTok{4}\NormalTok{]),}
+        \FunctionTok{list}\NormalTok{(}\AttributeTok{method =} \StringTok{"restyle"}\NormalTok{,}
+             \AttributeTok{args =} \FunctionTok{list}\NormalTok{(}\StringTok{\textquotesingle{}visible\textquotesingle{}}\NormalTok{, }\FunctionTok{c}\NormalTok{( }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{,}\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{TRUE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{)),}
+             \AttributeTok{label =} \FunctionTok{unique}\NormalTok{(dat}\SpecialCharTok{$}\NormalTok{ICunitName)[}\DecValTok{10}\NormalTok{]),}
+        \FunctionTok{list}\NormalTok{(}\AttributeTok{method =} \StringTok{"restyle"}\NormalTok{,}
+             \AttributeTok{args =} \FunctionTok{list}\NormalTok{(}\StringTok{\textquotesingle{}visible\textquotesingle{}}\NormalTok{, }\FunctionTok{c}\NormalTok{( }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{,}\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{TRUE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{)),}
+             \AttributeTok{label =} \FunctionTok{unique}\NormalTok{(dat}\SpecialCharTok{$}\NormalTok{ICunitName)[}\DecValTok{12}\NormalTok{]),}
+        \FunctionTok{list}\NormalTok{(}\AttributeTok{method =} \StringTok{"restyle"}\NormalTok{,}
+             \AttributeTok{args =} \FunctionTok{list}\NormalTok{(}\StringTok{\textquotesingle{}visible\textquotesingle{}}\NormalTok{, }\FunctionTok{c}\NormalTok{( }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{,}\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{TRUE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{)),}
+             \AttributeTok{label =} \FunctionTok{unique}\NormalTok{(dat}\SpecialCharTok{$}\NormalTok{ICunitName)[}\DecValTok{14}\NormalTok{]),}
+        \FunctionTok{list}\NormalTok{(}\AttributeTok{method =} \StringTok{"restyle"}\NormalTok{,}
+             \AttributeTok{args =} \FunctionTok{list}\NormalTok{(}\StringTok{\textquotesingle{}visible\textquotesingle{}}\NormalTok{, }\FunctionTok{c}\NormalTok{( }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{,}\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{TRUE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{)),}
+             \AttributeTok{label =} \FunctionTok{unique}\NormalTok{(dat}\SpecialCharTok{$}\NormalTok{ICunitName)[}\DecValTok{7}\NormalTok{]),}
+        \FunctionTok{list}\NormalTok{(}\AttributeTok{method =} \StringTok{"restyle"}\NormalTok{,}
+             \AttributeTok{args =} \FunctionTok{list}\NormalTok{(}\StringTok{\textquotesingle{}visible\textquotesingle{}}\NormalTok{, }\FunctionTok{c}\NormalTok{( }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{,}\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{TRUE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{)),}
+             \AttributeTok{label =} \FunctionTok{unique}\NormalTok{(dat}\SpecialCharTok{$}\NormalTok{ICunitName)[}\DecValTok{17}\NormalTok{]),}
+        \FunctionTok{list}\NormalTok{(}\AttributeTok{method =} \StringTok{"restyle"}\NormalTok{,}
+             \AttributeTok{args =} \FunctionTok{list}\NormalTok{(}\StringTok{\textquotesingle{}visible\textquotesingle{}}\NormalTok{, }\FunctionTok{c}\NormalTok{( }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{,}\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{TRUE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{)),}
+             \AttributeTok{label =} \FunctionTok{unique}\NormalTok{(dat}\SpecialCharTok{$}\NormalTok{ICunitName)[}\DecValTok{9}\NormalTok{]),}
+        \FunctionTok{list}\NormalTok{(}\AttributeTok{method =} \StringTok{"restyle"}\NormalTok{,}
+             \AttributeTok{args =} \FunctionTok{list}\NormalTok{(}\StringTok{\textquotesingle{}visible\textquotesingle{}}\NormalTok{, }\FunctionTok{c}\NormalTok{( }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{,}\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{TRUE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{)),}
+             \AttributeTok{label =} \FunctionTok{unique}\NormalTok{(dat}\SpecialCharTok{$}\NormalTok{ICunitName)[}\DecValTok{6}\NormalTok{]),}
+        \FunctionTok{list}\NormalTok{(}\AttributeTok{method =} \StringTok{"restyle"}\NormalTok{,}
+             \AttributeTok{args =} \FunctionTok{list}\NormalTok{(}\StringTok{\textquotesingle{}visible\textquotesingle{}}\NormalTok{, }\FunctionTok{c}\NormalTok{( }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{,}\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{TRUE}\NormalTok{)),}
+             \AttributeTok{label =} \FunctionTok{unique}\NormalTok{(dat}\SpecialCharTok{$}\NormalTok{ICunitName)[}\DecValTok{1}\NormalTok{])}
+\NormalTok{      )}
+\NormalTok{    )}
+\NormalTok{  )}
+\NormalTok{) }\CommentTok{\# Add drop down menus for the data}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{02-time_series_files/figure-latex/scaled data-1.pdf}
 
 \hypertarget{maps}{%
 \chapter{Maps}\label{maps}}
@@ -535,6 +622,11 @@ Then I will create a data frame with the mean indicator values and the SD.
 \FunctionTok{library}\NormalTok{(matrixStats)}
 \CommentTok{\#\textgreater{} Warning: package \textquotesingle{}matrixStats\textquotesingle{} was built under R version}
 \CommentTok{\#\textgreater{} 4.1.3}
+\CommentTok{\#\textgreater{} }
+\CommentTok{\#\textgreater{} Attaching package: \textquotesingle{}matrixStats\textquotesingle{}}
+\CommentTok{\#\textgreater{} The following object is masked from \textquotesingle{}package:dplyr\textquotesingle{}:}
+\CommentTok{\#\textgreater{} }
+\CommentTok{\#\textgreater{}     count}
 \NormalTok{jerv\_tbl }\OtherTok{\textless{}{-}} \FunctionTok{data.frame}\NormalTok{(}\StringTok{"raw2019"} \OtherTok{=} \FunctionTok{round}\NormalTok{(}\FunctionTok{rowMeans}\NormalTok{(myMat2019), }\DecValTok{2}\NormalTok{),}
                        \StringTok{"sd2019"}  \OtherTok{=} \FunctionTok{round}\NormalTok{(matrixStats}\SpecialCharTok{::}\FunctionTok{rowSds}\NormalTok{(myMat2019), }\DecValTok{2}\NormalTok{),}
                        \StringTok{"ref"}     \OtherTok{=} \FunctionTok{round}\NormalTok{(}\FunctionTok{rowMeans}\NormalTok{(myMatr), }\DecValTok{2}\NormalTok{))}
@@ -607,7 +699,8 @@ Then I can get the spatial geometries associated with the data. There are the so
 \begin{Shaded}
 \begin{Highlighting}[]
 \FunctionTok{library}\NormalTok{(sf)}
-\CommentTok{\#\textgreater{} Linking to GEOS 3.9.1, GDAL 3.2.1, PROJ 7.2.1; sf\_use\_s2() is TRUE}
+\CommentTok{\#\textgreater{} Warning: package \textquotesingle{}sf\textquotesingle{} was built under R version 4.1.3}
+\CommentTok{\#\textgreater{} Linking to GEOS 3.10.2, GDAL 3.4.1, PROJ 7.2.1; sf\_use\_s2() is TRUE}
 \NormalTok{rov }\OtherTok{\textless{}{-}}\NormalTok{ sf}\SpecialCharTok{::}\FunctionTok{read\_sf}\NormalTok{(path)}
 \NormalTok{rov }\OtherTok{\textless{}{-}}\NormalTok{ sf}\SpecialCharTok{::}\FunctionTok{st\_make\_valid}\NormalTok{(rov)}
 \NormalTok{rov }\OtherTok{\textless{}{-}}\NormalTok{ rov[rov}\SpecialCharTok{$}\NormalTok{area}\SpecialCharTok{!=}\StringTok{"DEF jerv"}\NormalTok{,]}
@@ -646,6 +739,7 @@ Clip it against the outline of Norway to make it look more pretty
 \begin{Shaded}
 \begin{Highlighting}[]
 \FunctionTok{library}\NormalTok{(tmap)}
+\CommentTok{\#\textgreater{} Warning: package \textquotesingle{}tmap\textquotesingle{} was built under R version 4.1.3}
 \NormalTok{one }\OtherTok{\textless{}{-}} \FunctionTok{tm\_shape}\NormalTok{(rov)}\SpecialCharTok{+}
   \FunctionTok{tm\_polygons}\NormalTok{(}\AttributeTok{col=}\StringTok{"scaledIndicator"}\NormalTok{, }
               \AttributeTok{border.col =} \StringTok{"white"}\NormalTok{)}
@@ -669,6 +763,157 @@ Clip it against the outline of Norway to make it look more pretty
 
 \hypertarget{other-figures}{%
 \chapter{Other figures}\label{other-figures}}
+
+\hypertarget{ecosystem-fidelity}{%
+\section{Ecosystem fidelity}\label{ecosystem-fidelity}}
+
+All indicators are assigned to at least one ecosystem, but a fair number of them are assigned to multiple ecosystems by means of proportions. Wolverine (Jerv), for example, is assigned with 25\% to forest and and 75\% to mountain. This basic information could easily be displayed on each indicator's page on naturindeks.no.
+
+The relevant information is found in the assembled indicator data under \$indicators:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+
+\NormalTok{i }\OtherTok{\textless{}{-}} \StringTok{"jerv"}
+\NormalTok{indexData }\OtherTok{\textless{}{-}} \FunctionTok{readRDS}\NormalTok{(}\FunctionTok{paste0}\NormalTok{(}\StringTok{"data/"}\NormalTok{, i, }\StringTok{"\_assemebled.rds"}\NormalTok{))}
+
+\FunctionTok{str}\NormalTok{(indexData}\SpecialCharTok{$}\NormalTok{indicators)}
+\CommentTok{\#\textgreater{} \textquotesingle{}data.frame\textquotesingle{}:    1 obs. of  9 variables:}
+\CommentTok{\#\textgreater{}  $ id               : num 88}
+\CommentTok{\#\textgreater{}  $ name             : chr "Jerv"}
+\CommentTok{\#\textgreater{}  $ keyElement       : logi FALSE}
+\CommentTok{\#\textgreater{}  $ functionalGroup  : chr "Topp{-}predator generalist"}
+\CommentTok{\#\textgreater{}  $ functionalGroupId: num 8}
+\CommentTok{\#\textgreater{}  $ scalingModel     : chr "Low"}
+\CommentTok{\#\textgreater{}  $ scalingModelId   : num 1}
+\CommentTok{\#\textgreater{}  $ Fjell            : num 75}
+\CommentTok{\#\textgreater{}  $ Skog             : num 25}
+\end{Highlighting}
+\end{Shaded}
+
+Any ecosystem type relevant to a specific indicator appears as a separate column in this dataframe, and contains a value representing the \% fidelity to that ecosystem type.
+
+Using separately stored information on available ecosystem types, we can assemble this data for all of our example indicators:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Load ecosystem info}
+\NormalTok{EcoSysInfo }\OtherTok{\textless{}{-}} \FunctionTok{readRDS}\NormalTok{(}\StringTok{"data/EcosystemInfo.rds"}\NormalTok{)}
+
+\CommentTok{\# Indicator list}
+\NormalTok{indicator }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\StringTok{"Dikesoldogg"}\NormalTok{,}
+               \StringTok{"Jerv"}\NormalTok{,}
+               \StringTok{"Elg"}\NormalTok{,}
+               \StringTok{"Lomvi"}\NormalTok{,}
+               \StringTok{"Havørn"}\NormalTok{,}
+               \StringTok{"Lange"}\NormalTok{)}
+
+\CommentTok{\# Assemble fidelity data}
+\NormalTok{fidData }\OtherTok{\textless{}{-}} \FunctionTok{data.frame}\NormalTok{()}
+
+\ControlFlowTok{for}\NormalTok{(i }\ControlFlowTok{in} \DecValTok{1}\SpecialCharTok{:}\FunctionTok{length}\NormalTok{(indicator))\{}
+  
+\NormalTok{  indexData }\OtherTok{\textless{}{-}} \FunctionTok{readRDS}\NormalTok{(}\FunctionTok{paste0}\NormalTok{(}\StringTok{"data/"}\NormalTok{, indicator[i], }\StringTok{"\_assemebled.rds"}\NormalTok{))}
+  
+\NormalTok{  ColIdx }\OtherTok{\textless{}{-}} \FunctionTok{which}\NormalTok{(}\FunctionTok{names}\NormalTok{(indexData}\SpecialCharTok{$}\NormalTok{indicators) }\SpecialCharTok{\%in\%}\NormalTok{ EcoSysInfo}\SpecialCharTok{$}\NormalTok{ecosystem)}
+
+\NormalTok{  fidDataI }\OtherTok{\textless{}{-}} \FunctionTok{data.frame}\NormalTok{(}
+    \AttributeTok{indicator =}\NormalTok{ indicator[i],}
+    \AttributeTok{ecosystem =} \FunctionTok{names}\NormalTok{(indexData}\SpecialCharTok{$}\NormalTok{indicators)[ColIdx],}
+    \AttributeTok{fidelity =} \FunctionTok{unname}\NormalTok{(}\FunctionTok{as.numeric}\NormalTok{(indexData}\SpecialCharTok{$}\NormalTok{indicators[,ColIdx])))}
+  
+\NormalTok{  fidData }\OtherTok{\textless{}{-}} \FunctionTok{rbind}\NormalTok{(fidData, fidDataI)}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+This gives us a dataframe with all indicators and their fidelity to different ecosystems:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{print}\NormalTok{(fidData)}
+\CommentTok{\#\textgreater{}     indicator         ecosystem fidelity}
+\CommentTok{\#\textgreater{} 1 Dikesoldogg           Våtmark      100}
+\CommentTok{\#\textgreater{} 2        Jerv             Fjell       75}
+\CommentTok{\#\textgreater{} 3        Jerv              Skog       25}
+\CommentTok{\#\textgreater{} 4         Elg              Skog      100}
+\CommentTok{\#\textgreater{} 5       Lomvi      Hav{-}pelagisk       67}
+\CommentTok{\#\textgreater{} 6       Lomvi Kystvann{-}pelagisk       33}
+\CommentTok{\#\textgreater{} 7      Havørn Kystvann{-}pelagisk      100}
+\CommentTok{\#\textgreater{} 8       Lange           Havbunn       80}
+\CommentTok{\#\textgreater{} 9       Lange     Kystvann{-}bunn       20}
+\end{Highlighting}
+\end{Shaded}
+
+Before plotting, we match the integer ecosystem IDs to make sure the colour mapping works correctly:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{fidData }\OtherTok{\textless{}{-}} \FunctionTok{merge}\NormalTok{(fidData, EcoSysInfo, }\AttributeTok{all.x =} \ConstantTok{TRUE}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+Next, we'll visualize this information for each indicator by means of pie charts.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{suppressWarnings}\NormalTok{(}\FunctionTok{library}\NormalTok{(ggplot2))}
+\FunctionTok{suppressWarnings}\NormalTok{(}\FunctionTok{library}\NormalTok{(tidyverse))}
+\NormalTok{EcoSys\_cols }\OtherTok{\textless{}{-}}\NormalTok{ NIviz\_colours}\SpecialCharTok{$}\NormalTok{EcoSys\_cols[}\DecValTok{1}\SpecialCharTok{:}\DecValTok{11}\NormalTok{]}
+\FunctionTok{names}\NormalTok{(EcoSys\_cols) }\OtherTok{\textless{}{-}}\NormalTok{ EcoSysInfo}\SpecialCharTok{$}\NormalTok{ecosystem}
+
+\ControlFlowTok{for}\NormalTok{(i }\ControlFlowTok{in} \DecValTok{1}\SpecialCharTok{:}\FunctionTok{length}\NormalTok{(indicator))\{}
+  
+\NormalTok{  sub\_fidData }\OtherTok{\textless{}{-}} \FunctionTok{subset}\NormalTok{(fidData, indicator }\SpecialCharTok{==}\NormalTok{ indicator[i])}
+  
+  \FunctionTok{print}\NormalTok{(}
+    \FunctionTok{ggplot}\NormalTok{(sub\_fidData, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =} \StringTok{""}\NormalTok{, }\AttributeTok{y =}\NormalTok{ fidelity, }\AttributeTok{fill =} \FunctionTok{fct\_inorder}\NormalTok{(ecosystem))) }\SpecialCharTok{+}
+    \FunctionTok{ggtitle}\NormalTok{(indicator[i]) }\SpecialCharTok{+} 
+    \FunctionTok{geom\_bar}\NormalTok{(}\AttributeTok{stat =} \StringTok{"identity"}\NormalTok{) }\SpecialCharTok{+}
+    \FunctionTok{geom\_text}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{label =} \FunctionTok{paste0}\NormalTok{(fidelity, }\StringTok{"\%"}\NormalTok{)),}
+              \AttributeTok{position =} \FunctionTok{position\_stack}\NormalTok{(}\AttributeTok{vjust =} \FloatTok{0.5}\NormalTok{)) }\SpecialCharTok{+}
+    \FunctionTok{coord\_polar}\NormalTok{(}\AttributeTok{theta =} \StringTok{"y"}\NormalTok{) }\SpecialCharTok{+}
+    \FunctionTok{scale\_fill\_manual}\NormalTok{(}\AttributeTok{name =} \StringTok{"Ecosystem"}\NormalTok{, }\AttributeTok{values =}\NormalTok{ EcoSys\_cols[}\FunctionTok{which}\NormalTok{(}\FunctionTok{names}\NormalTok{(EcoSys\_cols) }\SpecialCharTok{\%in\%}\NormalTok{ sub\_fidData}\SpecialCharTok{$}\NormalTok{ecosystem)]) }\SpecialCharTok{+} 
+    \FunctionTok{theme\_void}\NormalTok{()}
+\NormalTok{  )}
+
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{04-other_figures_files/figure-latex/unnamed-chunk-5-1.pdf} \includegraphics{04-other_figures_files/figure-latex/unnamed-chunk-5-2.pdf} \includegraphics{04-other_figures_files/figure-latex/unnamed-chunk-5-3.pdf} \includegraphics{04-other_figures_files/figure-latex/unnamed-chunk-5-4.pdf} \includegraphics{04-other_figures_files/figure-latex/unnamed-chunk-5-5.pdf} \includegraphics{04-other_figures_files/figure-latex/unnamed-chunk-5-6.pdf}
+Depending on how large these pie charts should appear on the website in the end, it may be necessary to move the percentage labels outside the pies. Doing that is a bit more cumbersome, but works with the code below unless the indicator belongs 100 \% to one dataset. When that is the case, the solution below does not print the percentage label at all (see indicator Lange) and I have not figured out how to fix that yet.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ControlFlowTok{for}\NormalTok{(i }\ControlFlowTok{in} \DecValTok{1}\SpecialCharTok{:}\FunctionTok{length}\NormalTok{(indicator))\{}
+  
+\NormalTok{  sub\_fidData }\OtherTok{\textless{}{-}} \FunctionTok{subset}\NormalTok{(fidData, indicator }\SpecialCharTok{==}\NormalTok{ indicator[i])}
+  
+\NormalTok{  posData }\OtherTok{\textless{}{-}}\NormalTok{ sub\_fidData }\SpecialCharTok{\%\textgreater{}\%} 
+  \FunctionTok{mutate}\NormalTok{(}\AttributeTok{csum =} \FunctionTok{rev}\NormalTok{(}\FunctionTok{cumsum}\NormalTok{(}\FunctionTok{rev}\NormalTok{(fidelity))), }
+         \AttributeTok{pos =}\NormalTok{ fidelity}\SpecialCharTok{/}\DecValTok{2} \SpecialCharTok{+} \FunctionTok{lead}\NormalTok{(csum, }\DecValTok{1}\NormalTok{),}
+         \AttributeTok{pos =} \FunctionTok{if\_else}\NormalTok{(}\FunctionTok{is.na}\NormalTok{(pos), fidelity}\SpecialCharTok{/}\DecValTok{2}\NormalTok{, pos))}
+  
+  \FunctionTok{print}\NormalTok{(}
+  \FunctionTok{ggplot}\NormalTok{(sub\_fidData, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =} \StringTok{""}\NormalTok{, }\AttributeTok{y =}\NormalTok{ fidelity, }\AttributeTok{fill =}\NormalTok{ ecosystem)) }\SpecialCharTok{+}
+    \FunctionTok{ggtitle}\NormalTok{(indicator[i]) }\SpecialCharTok{+} 
+    \FunctionTok{geom\_bar}\NormalTok{(}\AttributeTok{stat =} \StringTok{"identity"}\NormalTok{) }\SpecialCharTok{+}
+    \FunctionTok{coord\_polar}\NormalTok{(}\AttributeTok{theta =} \StringTok{"y"}\NormalTok{) }\SpecialCharTok{+}
+    \CommentTok{\#scale\_fill\_manual(values = EcoSys\_cols) + }
+    \FunctionTok{scale\_fill\_manual}\NormalTok{(}\AttributeTok{values =}\NormalTok{ EcoSys\_cols[}\FunctionTok{which}\NormalTok{(}\FunctionTok{names}\NormalTok{(EcoSys\_cols) }\SpecialCharTok{\%in\%}\NormalTok{ sub\_fidData}\SpecialCharTok{$}\NormalTok{ecosystem)]) }\SpecialCharTok{+} 
+    \FunctionTok{scale\_y\_continuous}\NormalTok{(}\AttributeTok{breaks =}\NormalTok{ posData}\SpecialCharTok{$}\NormalTok{pos, }\AttributeTok{labels =} \FunctionTok{paste0}\NormalTok{(sub\_fidData}\SpecialCharTok{$}\NormalTok{fidelity, }\StringTok{"\%"}\NormalTok{)) }\SpecialCharTok{+}
+    \FunctionTok{theme}\NormalTok{(}\AttributeTok{axis.ticks =} \FunctionTok{element\_blank}\NormalTok{(),}
+          \AttributeTok{axis.title =} \FunctionTok{element\_blank}\NormalTok{(),}
+          \AttributeTok{axis.text =} \FunctionTok{element\_text}\NormalTok{(}\AttributeTok{size =} \DecValTok{15}\NormalTok{), }
+          \AttributeTok{panel.background =} \FunctionTok{element\_rect}\NormalTok{(}\AttributeTok{fill =} \StringTok{"white"}\NormalTok{))}
+\NormalTok{  )}
+
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{04-other_figures_files/figure-latex/unnamed-chunk-6-1.pdf} \includegraphics{04-other_figures_files/figure-latex/unnamed-chunk-6-2.pdf} \includegraphics{04-other_figures_files/figure-latex/unnamed-chunk-6-3.pdf} \includegraphics{04-other_figures_files/figure-latex/unnamed-chunk-6-4.pdf} \includegraphics{04-other_figures_files/figure-latex/unnamed-chunk-6-5.pdf} \includegraphics{04-other_figures_files/figure-latex/unnamed-chunk-6-6.pdf}
 
 \hypertarget{wordcloud-figures}{%
 \section{Wordcloud figures}\label{wordcloud-figures}}
@@ -800,15 +1045,6 @@ The following wordcloud figures show the pressure factors for each indicator, wh
 
 \CommentTok{\# load library}
 \FunctionTok{library}\NormalTok{(tidyverse)}
-\CommentTok{\#\textgreater{} {-}{-} Attaching packages {-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-} tidyverse 1.3.1 {-}{-}}
-\CommentTok{\#\textgreater{} v ggplot2 3.3.5     v purrr   0.3.4}
-\CommentTok{\#\textgreater{} v tibble  3.1.6     v stringr 1.4.0}
-\CommentTok{\#\textgreater{} v tidyr   1.2.0     v forcats 0.5.1}
-\CommentTok{\#\textgreater{} v readr   2.1.2}
-\CommentTok{\#\textgreater{} {-}{-} Conflicts {-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-} tidyverse\_conflicts() {-}{-}}
-\CommentTok{\#\textgreater{} x ggplot2::annotate() masks NLP::annotate()}
-\CommentTok{\#\textgreater{} x dplyr::filter()     masks stats::filter()}
-\CommentTok{\#\textgreater{} x dplyr::lag()        masks stats::lag()}
 \CommentTok{\# Compute percentages}
 \NormalTok{data}\SpecialCharTok{$}\NormalTok{fraction }\OtherTok{\textless{}{-}}\NormalTok{ data}\SpecialCharTok{$}\NormalTok{count }\SpecialCharTok{/} \FunctionTok{sum}\NormalTok{(data}\SpecialCharTok{$}\NormalTok{count)}
 
@@ -838,7 +1074,7 @@ The following wordcloud figures show the pressure factors for each indicator, wh
 \end{Highlighting}
 \end{Shaded}
 
-\includegraphics{04-other_figures_files/figure-latex/unnamed-chunk-2-1.pdf}
+\includegraphics{04-other_figures_files/figure-latex/unnamed-chunk-8-1.pdf}
 
   \bibliography{book.bib,packages.bib}
 

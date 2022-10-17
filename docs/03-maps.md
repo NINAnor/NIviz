@@ -1,6 +1,8 @@
 # Maps
 
 
+
+
 ## Raw data
 
 ## Scaled data
@@ -96,6 +98,11 @@ Then I will create a data frame with the mean indicator values and the SD.
 library(matrixStats)
 #> Warning: package 'matrixStats' was built under R version
 #> 4.1.3
+#> 
+#> Attaching package: 'matrixStats'
+#> The following object is masked from 'package:dplyr':
+#> 
+#>     count
 jerv_tbl <- data.frame("raw2019" = round(rowMeans(myMat2019), 2),
                        "sd2019"  = round(matrixStats::rowSds(myMat2019), 2),
                        "ref"     = round(rowMeans(myMatr), 2))
@@ -164,7 +171,8 @@ path <- "P:/41201612_naturindeks_2021_2023_database_og_innsynslosning/Pilot_Forb
 
 ```r
 library(sf)
-#> Linking to GEOS 3.9.1, GDAL 3.2.1, PROJ 7.2.1; sf_use_s2() is TRUE
+#> Warning: package 'sf' was built under R version 4.1.3
+#> Linking to GEOS 3.10.2, GDAL 3.4.1, PROJ 7.2.1; sf_use_s2() is TRUE
 rov <- sf::read_sf(path)
 rov <- sf::st_make_valid(rov)
 rov <- rov[rov$area!="DEF jerv",]
@@ -202,6 +210,7 @@ rov$raw <- jerv_tbl$raw2019[match(rov$area, jerv_tbl$region)]
 
 ```r
 library(tmap)
+#> Warning: package 'tmap' was built under R version 4.1.3
 one <- tm_shape(rov)+
   tm_polygons(col="scaledIndicator", 
               border.col = "white")
@@ -218,7 +227,7 @@ three <- tm_shape(rov)+
 tmap_arrange(one, two, 
              widths = c(.75, .25),
              heights = c(1, 0.5))
-#> Legend labels were too wide. The labels have been resized to 0.44, 0.44, 0.44, 0.44, 0.44, 0.44. Increase legend.width (argument of tm_layout) to make the legend wider and therefore the labels larger.
+#> Legend labels were too wide. The labels have been resized to 0.44, 0.44, 0.44, 0.44, 0.36, 0.31, 0.31. Increase legend.width (argument of tm_layout) to make the legend wider and therefore the labels larger.
 ```
 
 ![](03-maps_files/figure-epub3/unnamed-chunk-13-1.png)<!-- -->

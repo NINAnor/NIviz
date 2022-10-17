@@ -1,5 +1,13 @@
 # Time series {#cross}
 
+
+```{r setup, echo=FALSE, message=FALSE, warning=FALSE}
+source("R/colorPalettes.R")
+source("R/ggplotTheme.R")
+```
+
+
+
 ## Raw data
 
 ```{r raw data, echo=TRUE, message=FALSE, warning=FALSE}
@@ -15,7 +23,7 @@ sum_dat=dat %>%
   summarise(mnExpected=mean(expectedValue, na.rm=TRUE),
             mnUpper=mean(upperQuantile, na.rm=TRUE),
             mnLower=mean(lowerQuantile, na.rm=TRUE)) # summerise the data to mean values
-source("R/ggplotTheme.R")
+
 p=sum_dat %>% 
   ggplot(aes(as.numeric(yearName), mnExpected, col=ICunitName))+
   geom_line()+

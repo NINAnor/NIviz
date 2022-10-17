@@ -1,5 +1,151 @@
 # Other figures
 
+
+
+
+## Ecosystem fidelity
+All indicators are assigned to at least one ecosystem, but a fair number of them are assigned to multiple ecosystems by means of proportions. Wolverine (Jerv), for example, is assigned with 25\% to forest and and 75\% to mountain. This basic information could easily be displayed on each indicator's page on naturindeks.no. 
+
+The relevant information is found in the assembled indicator data under $indicators: 
+
+
+```r
+
+i <- "jerv"
+indexData <- readRDS(paste0("data/", i, "_assemebled.rds"))
+
+str(indexData$indicators)
+#> 'data.frame':	1 obs. of  9 variables:
+#>  $ id               : num 88
+#>  $ name             : chr "Jerv"
+#>  $ keyElement       : logi FALSE
+#>  $ functionalGroup  : chr "Topp-predator generalist"
+#>  $ functionalGroupId: num 8
+#>  $ scalingModel     : chr "Low"
+#>  $ scalingModelId   : num 1
+#>  $ Fjell            : num 75
+#>  $ Skog             : num 25
+```
+
+Any ecosystem type relevant to a specific indicator appears as a separate column in this dataframe, and contains a value representing the \% fidelity to that ecosystem type. 
+
+Using separately stored information on available ecosystem types, we can assemble this data for all of our example indicators: 
+
+
+```r
+# Load ecosystem info
+EcoSysInfo <- readRDS("data/EcosystemInfo.rds")
+
+# Indicator list
+indicator <- c("Dikesoldogg",
+               "Jerv",
+               "Elg",
+               "Lomvi",
+               "Havørn",
+               "Lange")
+
+# Assemble fidelity data
+fidData <- data.frame()
+
+for(i in 1:length(indicator)){
+  
+  indexData <- readRDS(paste0("data/", indicator[i], "_assemebled.rds"))
+  
+  ColIdx <- which(names(indexData$indicators) %in% EcoSysInfo$ecosystem)
+
+  fidDataI <- data.frame(
+    indicator = indicator[i],
+    ecosystem = names(indexData$indicators)[ColIdx],
+    fidelity = unname(as.numeric(indexData$indicators[,ColIdx])))
+  
+  fidData <- rbind(fidData, fidDataI)
+}
+```
+
+This gives us a dataframe with all indicators and their fidelity to different ecosystems: 
+
+```r
+print(fidData)
+#>     indicator         ecosystem fidelity
+#> 1 Dikesoldogg           Våtmark      100
+#> 2        Jerv             Fjell       75
+#> 3        Jerv              Skog       25
+#> 4         Elg              Skog      100
+#> 5       Lomvi      Hav-pelagisk       67
+#> 6       Lomvi Kystvann-pelagisk       33
+#> 7      Havørn Kystvann-pelagisk      100
+#> 8       Lange           Havbunn       80
+#> 9       Lange     Kystvann-bunn       20
+```
+
+Before plotting, we match the integer ecosystem IDs to make sure the colour mapping works correctly: 
+
+
+```r
+fidData <- merge(fidData, EcoSysInfo, all.x = TRUE)
+```
+
+Next, we'll visualize this information for each indicator by means of pie charts. 
+
+
+```r
+suppressWarnings(library(ggplot2))
+suppressWarnings(library(tidyverse))
+EcoSys_cols <- NIviz_colours$EcoSys_cols[1:11]
+names(EcoSys_cols) <- EcoSysInfo$ecosystem
+
+for(i in 1:length(indicator)){
+  
+  sub_fidData <- subset(fidData, indicator == indicator[i])
+  
+  print(
+    ggplot(sub_fidData, aes(x = "", y = fidelity, fill = fct_inorder(ecosystem))) +
+    ggtitle(indicator[i]) + 
+    geom_bar(stat = "identity") +
+    geom_text(aes(label = paste0(fidelity, "%")),
+              position = position_stack(vjust = 0.5)) +
+    coord_polar(theta = "y") +
+    scale_fill_manual(name = "Ecosystem", values = EcoSys_cols[which(names(EcoSys_cols) %in% sub_fidData$ecosystem)]) + 
+    theme_void()
+  )
+
+}
+```
+
+![](04-other_figures_files/figure-epub3/unnamed-chunk-5-1.png)<!-- -->![](04-other_figures_files/figure-epub3/unnamed-chunk-5-2.png)<!-- -->![](04-other_figures_files/figure-epub3/unnamed-chunk-5-3.png)<!-- -->![](04-other_figures_files/figure-epub3/unnamed-chunk-5-4.png)<!-- -->![](04-other_figures_files/figure-epub3/unnamed-chunk-5-5.png)<!-- -->![](04-other_figures_files/figure-epub3/unnamed-chunk-5-6.png)<!-- -->
+Depending on how large these pie charts should appear on the website in the end, it may be necessary to move the percentage labels outside the pies. Doing that is a bit more cumbersome, but works with the code below unless the indicator belongs 100 \% to one dataset. When that is the case, the solution below does not print the percentage label at all (see indicator Lange) and I have not figured out how to fix that yet. 
+
+
+
+```r
+for(i in 1:length(indicator)){
+  
+  sub_fidData <- subset(fidData, indicator == indicator[i])
+  
+  posData <- sub_fidData %>% 
+  mutate(csum = rev(cumsum(rev(fidelity))), 
+         pos = fidelity/2 + lead(csum, 1),
+         pos = if_else(is.na(pos), fidelity/2, pos))
+  
+  print(
+  ggplot(sub_fidData, aes(x = "", y = fidelity, fill = ecosystem)) +
+    ggtitle(indicator[i]) + 
+    geom_bar(stat = "identity") +
+    coord_polar(theta = "y") +
+    #scale_fill_manual(values = EcoSys_cols) + 
+    scale_fill_manual(values = EcoSys_cols[which(names(EcoSys_cols) %in% sub_fidData$ecosystem)]) + 
+    scale_y_continuous(breaks = posData$pos, labels = paste0(sub_fidData$fidelity, "%")) +
+    theme(axis.ticks = element_blank(),
+          axis.title = element_blank(),
+          axis.text = element_text(size = 15), 
+          panel.background = element_rect(fill = "white"))
+  )
+
+}
+```
+
+![](04-other_figures_files/figure-epub3/unnamed-chunk-6-1.png)<!-- -->![](04-other_figures_files/figure-epub3/unnamed-chunk-6-2.png)<!-- -->![](04-other_figures_files/figure-epub3/unnamed-chunk-6-3.png)<!-- -->![](04-other_figures_files/figure-epub3/unnamed-chunk-6-4.png)<!-- -->![](04-other_figures_files/figure-epub3/unnamed-chunk-6-5.png)<!-- -->![](04-other_figures_files/figure-epub3/unnamed-chunk-6-6.png)<!-- -->
+
 ## Wordcloud figures
 
 ```r
@@ -109,15 +255,6 @@ data <- data.frame(
 
 # load library
 library(tidyverse)
-#> -- Attaching packages ------------------- tidyverse 1.3.1 --
-#> v ggplot2 3.3.5     v purrr   0.3.4
-#> v tibble  3.1.6     v stringr 1.4.0
-#> v tidyr   1.2.0     v forcats 0.5.1
-#> v readr   2.1.2
-#> -- Conflicts ---------------------- tidyverse_conflicts() --
-#> x ggplot2::annotate() masks NLP::annotate()
-#> x dplyr::filter()     masks stats::filter()
-#> x dplyr::lag()        masks stats::lag()
 # Compute percentages
 data$fraction <- data$count / sum(data$count)
 
@@ -146,6 +283,4 @@ ggplot(data, aes(ymax=ymax, ymin=ymin, xmax=4, xmin=3, fill=category)) +
   theme(legend.position = "none")
 ```
 
-![](04-other_figures_files/figure-epub3/unnamed-chunk-2-1.png)<!-- -->
-
-
+![](04-other_figures_files/figure-epub3/unnamed-chunk-8-1.png)<!-- -->
