@@ -1,7 +1,11 @@
 # Downloading and preparing example data 
 
 ```{r Load library, eval = TRUE, message = FALSE, warning = FALSE}
+if(!require(NIcalc)){
+  devtools::install_github("NINAnor/NIcalc", build_vignettes = F)
+}
 library(NIcalc)
+
 ```
 
 Fill in your username (NINA email) and password.
