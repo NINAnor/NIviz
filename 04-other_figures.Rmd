@@ -5,6 +5,148 @@ source("R/colorPalettes.R")
 source("R/ggplotTheme.R")
 library(ggplot2)
 library(tidyverse)
+library(ggridges)
+```
+
+## Gradient density plots for interactive maps
+The maps presented on the webpage do not include any representation of uncertainty. One way of including that information without having to add additional (layers to the) maps would be to build on the interactive functions included so far and present a probability distribution for the given region and year. This could be displayed in the same box that currently appears when hovering over an area and displays area name and average indicator value.
+
+To make these density plots, we use the previously simulated bootstrap samples, using Jerv as an example: 
+
+```{r, eval = TRUE}
+
+i <- "Jerv"
+bootStrp <- readRDS(paste0("data/", i, "_bootstrapped_scaled.rds"))
+head(bootStrp)
+
+```
+I have considered forcing all indicator values > 1 to display as 1, but this messes up when plotting density functions. Still, this conversion is required for calculating the point estimate (median) and I therefore make a copy of the data in which no values are larger than 1. 
+
+```{r, eval = TRUE}
+bootStrp1 <- bootStrp
+bootStrp1$scaledIndicator[which(bootStrp1$scaledIndicator > 1)] <- 1
+
+```
+
+Next, we need to manually calculate the probability densities for the indicator values in each year and area. This is necessary for making density plots with a color gradient fill (but see further below for an alternative using the "ggridges" package which does not require this intermediate step).
+
+```{r, eval = TRUE}
+years <- unique(bootStrp$year)
+areas <- unique(bootStrp$ICunitName)
+
+pDens <- data.frame()
+for(t in years){
+  for(a in areas){
+    
+    bootStrp_sub <- subset(bootStrp, year == t & ICunitName == a)
+    
+    pDens_a_t <- data.frame(
+      ICunitName = a,
+      year = t, 
+      x = density(bootStrp_sub$scaledIndicator)$x,
+      y = density(bootStrp_sub$scaledIndicator)$y
+    )
+    
+    pDens <- rbind(pDens, pDens_a_t)
+  }
+}
+
+```
+
+We can then proceed to plotting the probability density functions with a color gradient under the line: 
+
+```{r, eval = TRUE}
+
+# Set maximum value (we will not plot beyond 4)
+
+for(t in years){
+
+  # Take data subsets for a given year
+  bootStrp_yr <- bootStrp[which(bootStrp$year == t),]
+  bootStrp1_yr <- bootStrp1[which(bootStrp1$year == t),]
+  pDens_yr <- pDens[which(pDens$year == t),]
+
+  # Extract distribution medians
+  sum_values <- bootStrp1_yr %>% 
+    group_by(ICunitName) %>%
+    summarise(sumStat = median(scaledIndicator)) 
+  
+  # Set maximum plotting value (never > 5) and mapping for custom color scale
+  maxVal <- ifelse(max(pDens_yr$x) > 5, 5, max(pDens_yr$x))
+  
+  if(maxVal < 1+1/9){
+    valuesMap <- c(-0.1, seq(0, 1, length.out = 10))
+    colorMap <- c("#1F8C81", NIviz_colours$IndMap_cols)
+  }else{
+    valuesMap <- c(-0.1, c(seq(0, 1, length.out = 10), maxVal)/maxVal)
+    colorMap <- c("#1F8C81", NIviz_colours$IndMap_cols, "#4B4BAF")
+  }
+  
+  # Plot densities
+  print(
+    ggplot(subset(pDens_yr, x <= maxVal), aes(x, y)) + 
+      geom_segment(aes(xend = x, yend = 0, colour = x)) + 
+      #scale_color_NIviz_c(name = "IndMap_cols") + 
+      scale_colour_gradientn(colours = colorMap,
+                             values = valuesMap,
+                             limits = c(-0.01, ifelse(maxVal < 1, 1, maxVal))) +
+      ggtitle(paste0(i, " (", t, ")")) +
+      xlab("Value") + 
+      geom_vline(data = sum_values, aes(xintercept = sumStat)) + 
+      facet_wrap(~ ICunitName, scales = 'free') + 
+      theme_classic() + 
+      theme(strip.background = element_blank(), 
+            legend.title = element_blank(),
+            axis.line.y = element_blank(), axis.ticks.y = element_blank(),
+            axis.text.y = element_blank(), axis.title.y = element_blank())
+  )
+}
+
+
+
+```
+
+Gradient density plots might also be useful for other types of visualization of indicator and index data. For example, there is a very attractive way of using ridgeplots for visualizing time series inclusing uncertainty. Could look something like this:
+
+```{r, eval = TRUE}
+
+for(a in areas){
+  
+  # Take data subsets for a given area
+  bootStrp_ar <- bootStrp[which(bootStrp$ICunitName == a),]
+  pDens_ar <- pDens[which(pDens$ICunitName == a),]
+  
+  # Set maximum plotting value (never > 5) and mapping for custom color scale
+  maxVal <- ifelse(max(pDens_ar$x) > 5, 5, max(pDens_ar$x))
+  
+  if(maxVal < 1+1/9){
+    valuesMap <- c(-0.1, seq(0, 1, length.out = 10))
+    colorMap <- c("#1F8C81", NIviz_colours$IndMap_cols)
+  }else{
+    valuesMap <- c(-0.1, c(seq(0, 1, length.out = 10), maxVal)/maxVal)
+    colorMap <- c("#1F8C81", NIviz_colours$IndMap_cols, "#4B4BAF")
+  }
+  
+  # Plot densities
+  print(
+  
+  ggplot(subset(bootStrp_ar, scaledIndicator <= maxVal), aes(x = scaledIndicator, y = year, fill = stat(x))) +
+    geom_density_ridges_gradient(scale = 5, rel_min_height = 0.01, quantile_lines = TRUE, quantiles = 2) + 
+    scale_fill_gradientn(colours = colorMap,
+                         values = valuesMap,
+                         limits = c(-0.02, ifelse(maxVal < 1, 1, maxVal))) +
+    ggtitle(paste0(i, " (", a, ")")) + 
+    xlab("Scaled indicator value") + ylab("") + 
+    theme_classic() + 
+    theme(legend.title = element_blank(), plot.title = element_text(hjust = 0.5),
+          axis.line.y = element_blank(), axis.ticks.y = element_blank(),
+          panel.grid.major.y = element_line(color = "grey80"))
+  )
+  
+}
+
+
+
 ```
 
 
