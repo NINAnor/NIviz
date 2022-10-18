@@ -19,11 +19,11 @@ bootStrp <- readRDS(paste0("data/", i, "_bootstrapped_scaled.rds"))
 head(bootStrp)
 
 ```
-Before proceeding any further, we need to force all indicator values > 1 to display as 1. 
+I have considered forcing all indicator values > 1 to display as 1, but this messes up when plotting density functions. Still, this conversion is required for calculating the point estimate (median) and I therefore make a copy of the data in which no values are larger than 1. 
 
 ```{r, eval = TRUE}
-
-bootStrp$scaledIndicator[which(bootStrp$scaledIndicator > 1)] <- 1
+bootStrp1 <- bootStrp
+bootStrp1$scaledIndicator[which(bootStrp1$scaledIndicator > 1)] <- 1
 
 ```
 
@@ -52,24 +52,45 @@ for(t in years){
 
 ```
 
+We can then proceed to plotting the probability density functions with a color gradient under the line: 
+
 ```{r, eval = TRUE}
+
+# Set maximum value (we will not plot beyond 4)
 
 for(t in years){
 
   # Take data subsets for a given year
   bootStrp_yr <- bootStrp[which(bootStrp$year == t),]
+  bootStrp1_yr <- bootStrp1[which(bootStrp1$year == t),]
   pDens_yr <- pDens[which(pDens$year == t),]
 
   # Extract distribution medians
-  sum_values <- bootStrp_yr %>% 
+  sum_values <- bootStrp1_yr %>% 
     group_by(ICunitName) %>%
     summarise(sumStat = median(scaledIndicator)) 
   
+  # Set maximum plotting value (never > 5) and mapping for custom color scale
+  maxVal <- ifelse(max(pDens_yr$x) > 5, 5, max(pDens_yr$x))
+  
+  if(maxVal < 1+1/9){
+    valuesMap <- seq(0, 1, length.out = 10)
+    colorMap <- NIviz_colours$IndMap_cols
+  }else{
+    #valuesMap <- c(seq(0, 1, length.out = 10), seq(1+1/9, maxVal, by = 1/9))/maxVal
+    #colorMap <- c(NIviz_colours$IndMap_cols, rep("#4B4BAF", length(valuesMap)-10))
+    valuesMap <- c(seq(0, 1, length.out = 10), maxVal)/maxVal
+    colorMap <- c(NIviz_colours$IndMap_cols, "#4B4BAF")
+  }
+  
   # Plot densities
   print(
-    ggplot(pDens_yr, aes(x, y)) + 
+    ggplot(subset(pDens_yr, x <= maxVal), aes(x, y)) + 
       geom_segment(aes(xend = x, yend = 0, colour = x)) + 
-      scale_color_NIviz_c(name = "IndMap_cols") + 
+      #scale_color_NIviz_c(name = "IndMap_cols") + 
+      scale_colour_gradientn(colours = colorMap,
+                             values = valuesMap,
+                             limits = c(0, ifelse(maxVal < 1, 1, maxVal))) +
       ggtitle(paste0(i, " (", t, ")")) +
       xlab("Value") + 
       geom_vline(data = sum_values, aes(xintercept = sumStat)) + 
