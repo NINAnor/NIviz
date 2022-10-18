@@ -160,8 +160,8 @@ plot(jervComp$wholeArea)
 #### Get geometries
 
 Then I can get the spatial geometries associated with the data. There are the so called rovviltregioner. There are eight of them. They are actually linked to the BS-units (municipalites), but we don't want to plot the outlines of the municipalities.
-
-*Add text about how we got the json file and converted it to a shape file*
+The geometries for the appropriate spatial units of each indicator can be downloaded in .json format via a previously created API for the nature index database: https://ninweb08.nina.no/NaturindeksAPI/index.html
+To get the file for a specific indicator, one needs to enter the numerical indicator id under "/api/Indicator/\{id\}/Areas" and then click download. We then converted the .json file to shapefiles for use in R.  
 
 
 ```r
@@ -227,7 +227,7 @@ three <- tm_shape(rov)+
 tmap_arrange(one, two, 
              widths = c(.75, .25),
              heights = c(1, 0.5))
-#> Legend labels were too wide. The labels have been resized to 0.44, 0.44, 0.44, 0.44, 0.36, 0.31, 0.31. Increase legend.width (argument of tm_layout) to make the legend wider and therefore the labels larger.
+#> Legend labels were too wide. The labels have been resized to 0.27, 0.27, 0.27, 0.27, 0.27, 0.27. Increase legend.width (argument of tm_layout) to make the legend wider and therefore the labels larger.
 ```
 
 ![](03-maps_files/figure-epub3/unnamed-chunk-13-1.png)<!-- -->

@@ -2,6 +2,9 @@
 
 
 ```r
+if(!require(NIcalc)){
+  devtools::install_github("NINAnor/NIcalc", build_vignettes = F)
+}
 library(NIcalc)
 ```
 

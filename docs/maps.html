@@ -157,8 +157,8 @@ but also as probability functions that we can sample from:</p>
 <span><span class="va">jerv_tbl</span><span class="op">$</span><span class="va">cv</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="va">jerv_tbl</span><span class="op">$</span><span class="va">sd2019</span><span class="op">/</span><span class="va">jerv_tbl</span><span class="op">$</span><span class="va">raw2019</span>, <span class="fl">2</span><span class="op">)</span></span>
 <span><span class="va">jerv_tbl</span><span class="op">$</span><span class="va">region</span> <span class="op">&lt;-</span> <span class="va">jerv</span><span class="op">$</span><span class="va">indicatorValues</span><span class="op">$</span><span class="va">`2019`</span><span class="op">$</span><span class="va">ICunitName</span></span>
 <span><span class="fu">DT</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/DT/man/datatable.html">datatable</a></span><span class="op">(</span><span class="va">jerv_tbl</span><span class="op">)</span></span></code></pre></div>
-<div id="htmlwidget-ecdfaae96f3f07a41bb9" style="width:100%;height:auto;" class="datatables html-widget"></div>
-<script type="application/json" data-for="htmlwidget-ecdfaae96f3f07a41bb9">{"x":{"filter":"none","vertical":false,"data":[["1302","1304","1305","1311","1313","1315","1316","5141"],[163.75,59.79,12.54,3.64,4.38,6.56,3.72,3.52],[23.82,22.39,21.86,9.84,11.84,24.49,9.44,9.38],[827.01,358.13,403.92,280.61,204.36,191.34,165.61,29.69],[0.2,0.17,0.03,0.01,0.02,0.03,0.02,0.12],[0.15,0.37,1.74,2.7,2.7,3.73,2.54,2.66],["Rovviltregion 8","Rovviltregion 7","Rovviltregion 6","Rovviltregion 1","Rovviltregion 2","Rovviltregion 3","Rovviltregion 5","Rovviltregion 4"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>raw2019<\/th>\n      <th>sd2019<\/th>\n      <th>ref<\/th>\n      <th>scaled<\/th>\n      <th>cv<\/th>\n      <th>region<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"columnDefs":[{"className":"dt-right","targets":[1,2,3,4,5]},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script><p>This is a special case maybe, because the sd is often larger than the mean.</p>
+<div id="htmlwidget-f3325c2188fd59024620" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-f3325c2188fd59024620">{"x":{"filter":"none","vertical":false,"data":[["1302","1304","1305","1311","1313","1315","1316","5141"],[163.12,60.36,13.99,4.18,2.93,6.9,3.43,3.64],[23.31,22.67,23.57,13.6,7.33,22.7,9.77,8.15],[838.1,351.82,407.23,279.7,204.75,192.34,165.12,28.11],[0.19,0.17,0.03,0.01,0.01,0.04,0.02,0.13],[0.14,0.38,1.68,3.25,2.5,3.29,2.85,2.24],["Rovviltregion 8","Rovviltregion 7","Rovviltregion 6","Rovviltregion 1","Rovviltregion 2","Rovviltregion 3","Rovviltregion 5","Rovviltregion 4"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>raw2019<\/th>\n      <th>sd2019<\/th>\n      <th>ref<\/th>\n      <th>scaled<\/th>\n      <th>cv<\/th>\n      <th>region<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"columnDefs":[{"className":"dt-right","targets":[1,2,3,4,5]},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script><p>This is a special case maybe, because the sd is often larger than the mean.</p>
 <p>Btw, we could use inbuilt NIcalc functions to get the indicator value, like I do below, but that will aggregate to regions, and we want to keep the original geometry.</p>
 <div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">jervComp</span> <span class="op">&lt;-</span> <span class="fu">NIcalc</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/NIcalc/man/calculateIndex.html">calculateIndex</a></span><span class="op">(</span></span>
@@ -202,8 +202,9 @@ Figure 4.1: The scaled indicator values for wolverine across Norway.
 <h4>
 <span class="header-section-number">4.2.1.2</span> Get geometries<a class="anchor" aria-label="anchor" href="#get-geometries"><i class="fas fa-link"></i></a>
 </h4>
-<p>Then I can get the spatial geometries associated with the data. There are the so called rovviltregioner. There are eight of them. They are actually linked to the BS-units (municipalites), but we don’t want to plot the outlines of the municipalities.</p>
-<p><em>Add text about how we got the json file and converted it to a shape file</em></p>
+<p>Then I can get the spatial geometries associated with the data. There are the so called rovviltregioner. There are eight of them. They are actually linked to the BS-units (municipalites), but we don’t want to plot the outlines of the municipalities.
+The geometries for the appropriate spatial units of each indicator can be downloaded in .json format via a previously created API for the nature index database: <a href="https://ninweb08.nina.no/NaturindeksAPI/index.html" class="uri">https://ninweb08.nina.no/NaturindeksAPI/index.html</a>
+To get the file for a specific indicator, one needs to enter the numerical indicator id under “/api/Indicator/{id}/Areas” and then click download. We then converted the .json file to shapefiles for use in R.</p>
 <div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">path</span> <span class="op">&lt;-</span> <span class="st">"P:/41201612_naturindeks_2021_2023_database_og_innsynslosning/Pilot_Forbedring_Innsynsløsning/Shapefiles/Jerv"</span></span></code></pre></div>
 <div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
@@ -249,7 +250,8 @@ Figure 4.1: The scaled indicator values for wolverine across Norway.
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tmap_arrange.html">tmap_arrange</a></span><span class="op">(</span><span class="va">one</span>, <span class="va">two</span>, </span>
 <span>             widths <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">.75</span>, <span class="fl">.25</span><span class="op">)</span>,</span>
-<span>             heights <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">0.5</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<span>             heights <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">0.5</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Legend labels were too wide. The labels have been resized to 0.52, 0.52, 0.52, 0.52, 0.52, 0.52, 0.52. Increase legend.width (argument of tm_layout) to make the legend wider and therefore the labels larger.</span></span></code></pre></div>
 <div class="inline-figure"><img src="03-maps_files/figure-html/unnamed-chunk-13-1.png" width="672"></div>
 
 </div>
@@ -284,7 +286,7 @@ Figure 4.1: The scaled indicator values for wolverine across Norway.
 <footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
 
   <div class="col-12 col-md-6 mt-3">
-    <p>"<strong>NIvis</strong>" was written by . It was last built on 2022-10-17.</p>
+    <p>"<strong>NIvis</strong>" was written by . It was last built on 2022-10-18.</p>
   </div>
 
   <div class="col-12 col-md-6 mt-3">

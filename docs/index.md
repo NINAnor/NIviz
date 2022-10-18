@@ -1,7 +1,7 @@
 --- 
 title: "NIvis"
 author: ""
-date: "2022-10-17"
+date: "2022-10-18"
 site: bookdown::bookdown_site
 documentclass: book
 bibliography: [book.bib, packages.bib]
