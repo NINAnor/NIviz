@@ -5,6 +5,7 @@ source("R/colorPalettes.R")
 source("R/ggplotTheme.R")
 library(ggplot2)
 library(tidyverse)
+library(ggridges)
 ```
 
 ## Gradient density plots for interactive maps
@@ -74,13 +75,11 @@ for(t in years){
   maxVal <- ifelse(max(pDens_yr$x) > 5, 5, max(pDens_yr$x))
   
   if(maxVal < 1+1/9){
-    valuesMap <- seq(0, 1, length.out = 10)
-    colorMap <- NIviz_colours$IndMap_cols
+    valuesMap <- c(-0.1, seq(0, 1, length.out = 10))
+    colorMap <- c("#1F8C81", NIviz_colours$IndMap_cols)
   }else{
-    #valuesMap <- c(seq(0, 1, length.out = 10), seq(1+1/9, maxVal, by = 1/9))/maxVal
-    #colorMap <- c(NIviz_colours$IndMap_cols, rep("#4B4BAF", length(valuesMap)-10))
-    valuesMap <- c(seq(0, 1, length.out = 10), maxVal)/maxVal
-    colorMap <- c(NIviz_colours$IndMap_cols, "#4B4BAF")
+    valuesMap <- c(-0.1, c(seq(0, 1, length.out = 10), maxVal)/maxVal)
+    colorMap <- c("#1F8C81", NIviz_colours$IndMap_cols, "#4B4BAF")
   }
   
   # Plot densities
@@ -90,7 +89,7 @@ for(t in years){
       #scale_color_NIviz_c(name = "IndMap_cols") + 
       scale_colour_gradientn(colours = colorMap,
                              values = valuesMap,
-                             limits = c(0, ifelse(maxVal < 1, 1, maxVal))) +
+                             limits = c(-0.01, ifelse(maxVal < 1, 1, maxVal))) +
       ggtitle(paste0(i, " (", t, ")")) +
       xlab("Value") + 
       geom_vline(data = sum_values, aes(xintercept = sumStat)) + 
@@ -101,6 +100,49 @@ for(t in years){
             axis.line.y = element_blank(), axis.ticks.y = element_blank(),
             axis.text.y = element_blank(), axis.title.y = element_blank())
   )
+}
+
+
+
+```
+
+Gradient density plots might also be useful for other types of visualization of indicator and index data. For example, there is a very attractive way of using ridgeplots for visualizing time series inclusing uncertainty. Could look something like this:
+
+```{r, eval = TRUE}
+
+for(a in areas){
+  
+  # Take data subsets for a given area
+  bootStrp_ar <- bootStrp[which(bootStrp$ICunitName == a),]
+  pDens_ar <- pDens[which(pDens$ICunitName == a),]
+  
+  # Set maximum plotting value (never > 5) and mapping for custom color scale
+  maxVal <- ifelse(max(pDens_ar$x) > 5, 5, max(pDens_ar$x))
+  
+  if(maxVal < 1+1/9){
+    valuesMap <- c(-0.1, seq(0, 1, length.out = 10))
+    colorMap <- c("#1F8C81", NIviz_colours$IndMap_cols)
+  }else{
+    valuesMap <- c(-0.1, c(seq(0, 1, length.out = 10), maxVal)/maxVal)
+    colorMap <- c("#1F8C81", NIviz_colours$IndMap_cols, "#4B4BAF")
+  }
+  
+  # Plot densities
+  print(
+  
+  ggplot(subset(bootStrp_ar, scaledIndicator <= maxVal), aes(x = scaledIndicator, y = year, fill = stat(x))) +
+    geom_density_ridges_gradient(scale = 5, rel_min_height = 0.01, quantile_lines = TRUE, quantiles = 2) + 
+    scale_fill_gradientn(colours = colorMap,
+                         values = valuesMap,
+                         limits = c(-0.02, ifelse(maxVal < 1, 1, maxVal))) +
+    ggtitle(paste0(i, " (", a, ")")) + 
+    xlab("Scaled indicator value") + ylab("") + 
+    theme_classic() + 
+    theme(legend.title = element_blank(), plot.title = element_text(hjust = 0.5),
+          axis.line.y = element_blank(), axis.ticks.y = element_blank(),
+          panel.grid.major.y = element_line(color = "grey80"))
+  )
+  
 }
 
 
