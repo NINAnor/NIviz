@@ -62,7 +62,7 @@ jerv <- readRDS("data/Jerv_assemebled.rds")
 
 
 This data file contains the raw data in the form of expected values for each BSunits (municipalities). But we actually want to keep the original geometeris of the eight rovviltregioner, and so we need to focus in the ICunits instead.
-```{r, fig.cap="Estimated number of\nwolverine in 2019, exported from the NI database."}
+```{r}
 par(mar=c(9,5,1,1))
 barplot(jerv$indicatorValues$`2019`$expectedValue,
         names.arg = jerv$indicatorValues$`2019`$ICunitName, 
@@ -70,8 +70,9 @@ barplot(jerv$indicatorValues$`2019`$expectedValue,
         ylab = "Estimated number of\nwolverine in 2019")
 ```
 
-The data also contains upper and lower quantiles, but we can also get the full probability distribution and sample from it to get standard deviations, but also as probability functions that we can sample from:
-```{r, fig.cap="Probability distribuition for the number of wolverine, resamlped using data from the NI database and R function in the NIcalc-package."}
+The data also contains upper and lower quantiles, but we can also get the full probability distribution and sample from it to get standard deviations. 
+but also as probability functions that we can sample from:
+```{r}
 # bruker tradOb siden custumDist er NA. Dette er ikke en generisk løsning. 
 obstype <- rep("tradObs", nrow(jerv$indicatorValues$'2019'))
 
@@ -104,7 +105,7 @@ hist(myMat2019[8,], main = "Rovviltregion 8", xlab = "")
 For some reason the extected values are far from the mean of these distributions. I did this exercise [once before](https://ninanor.github.io/IBECA/jerv.html), and did not get this problem then. I think the difference is that I use eco = NULL this time, in the `importDatasetApi()`, and this cause the output to somehow split into forest and alpine ecosystems. I will ignore this here for this example.
 
 I can also get the reference values in the same way, and then divide one by the other to get scaled values
-```{r, fig.cap="Example distribution of scaled indicator values for wolverine."}
+```{r}
 myMatr <- NIcalc::sampleObsMat(
             jerv$referenceValues$ICunitId, 
             jerv$referenceValues$expectedValue,
@@ -117,11 +118,11 @@ myMatr <- NIcalc::sampleObsMat(
         )
 
 temp <- colSums(myMat2019)/colSums(myMatr)
-hist(temp, xlab = "Scaled indicator value for wolverine",main="")
+hist(temp)
 ```
 
 Then I will create a data frame with the mean indicator values and the SD.
-```{r, fig.cap="Table showing the different parameters and summary statistics for the wolverine indicator."}
+```{r}
 library(matrixStats)
 jerv_tbl <- data.frame("raw2019" = round(rowMeans(myMat2019), 2),
                        "sd2019"  = round(matrixStats::rowSds(myMat2019), 2),
@@ -153,7 +154,7 @@ plot(jervComp$wholeArea)
 
 #### Get geometries
 
-Then I can get the spatial geometries associated with the data. There are the so called rovviltregioner. There are eight of them. They are actually linked to the BS-units (municipalities), but we don't want to plot the outlines of the municipalities.
+Then I can get the spatial geometries associated with the data. There are the so called rovviltregioner. There are eight of them. They are actually linked to the BS-units (municipalites), but we don't want to plot the outlines of the municipalities.
 The geometries for the appropriate spatial units of each indicator can be downloaded in .json format via a previously created API for the nature index database: https://ninweb08.nina.no/NaturindeksAPI/index.html
 To get the file for a specific indicator, one needs to enter the numerical indicator id under "/api/Indicator/\{id\}/Areas" and then click download. We then converted the .json file to shapefiles for use in R.  
 
@@ -183,7 +184,7 @@ rov <- st_intersection(rov, nor)
 
 
 #### Link data and geometries
-Here I copy the data from the table into the geo-file.
+
 ```{r}
 rov$scaledIndicator <- jerv_tbl$scaled[match(rov$area, jerv_tbl$region)]
 rov$cv <- jerv_tbl$cv[match(rov$area, jerv_tbl$region)]
@@ -192,36 +193,24 @@ rov$raw <- jerv_tbl$raw2019[match(rov$area, jerv_tbl$region)]
 ```
 
 
-Then we can attempt to create some nice example maps where the indicator uncertainty is shown parallel to the scaled values.
-```{r, fig.cap="Scaled indicator values for the indikcator wolverine (left) and uncertainty as coefficients of variation (right)."}
+
+```{r}
 library(tmap)
-
-# colour palette with 10 colours
-pal <- grDevices::colorRampPalette(NIviz_colours[["IndMap_cols"]])(10)
-
 one <- tm_shape(rov)+
   tm_polygons(col="scaledIndicator", 
-              border.col = "white",
-              style = "cont",
-              breaks = seq(0,1, length.out = 11),
-              palette = pal)
-
+              border.col = "white")
 
 two <- tm_shape(rov)+
   tm_polygons(col="cv", 
-              border.col = "black")
+              border.col = "white")
 
-#three <- tm_shape(rov)+
-#  tm_polygons(col="raw", 
-#              border.col = "white")
+three <- tm_shape(rov)+
+  tm_polygons(col="raw", 
+              border.col = "white")
 
-
-tmap_mode("view")
 
 tmap_arrange(one, two, 
-             sync=T,
              widths = c(.75, .25),
-             heights = c(1, 0.5)
-             )
+             heights = c(1, 0.5))
 ```
 
