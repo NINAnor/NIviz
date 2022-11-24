@@ -1,6 +1,6 @@
 # Other figures
 
-```{r setup, echo=FALSE, message=FALSE, warning=FALSE}
+```{r setup_otherFigures, echo=FALSE, message=FALSE, warning=FALSE}
 source("R/colorPalettes.R")
 source("R/ggplotTheme.R")
 library(ggplot2)

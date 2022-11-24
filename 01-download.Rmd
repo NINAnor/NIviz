@@ -1,6 +1,6 @@
 # Downloading and preparing example data 
 
-```{r Load library, eval = TRUE, message = FALSE, warning = FALSE}
+```{r Load library_1, eval = TRUE, message = FALSE, warning = FALSE}
 if(!require(NIcalc)){
   devtools::install_github("NINAnor/NIcalc", build_vignettes = F)
 }
