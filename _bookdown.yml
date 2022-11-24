@@ -1,5 +1,5 @@
 book_filename: "NIviz"
-new_session: true
+new_session: false
 before_chapter_script: _common.R
 delete_merged_file: true
 language:
