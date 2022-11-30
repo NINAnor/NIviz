@@ -235,7 +235,7 @@ tmap_arrange(one, two,
 
 ### Gradient density plots for interactive maps
 
-Another idea we pursued is to build on the current map setup (Figure \@ref(fig:NIMap)), but include a visualization of the uncertainty distribution in the pop-up window that appears in the top-right corner when hovering over a region in the map. This idea is sketched out below in Figure \@ref(fig:NImapSketch), and we've written code to visualize corresponding distributions using the same color palette as the map in \@ref(#densities). 
+Another idea we pursued is to build on the current map setup (Figure \@ref(fig:NIMap)), but include a visualization of the uncertainty distribution in the pop-up window that appears in the top-right corner when hovering over a region in the map. This idea is sketched out below in Figure \@ref(fig:NImapSketch), and we've written code to visualize corresponding distributions using the same color palette as the map in Chapter 5.1. 
 
 ```{r NImapSketch, out.width = "60%", echo = FALSE, fig.cap = "Sketch of a map with uncertainty distribution popping up for active area."}
 knitr::include_graphics("images/NI_maps_dist.jpg")
