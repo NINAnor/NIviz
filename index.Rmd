@@ -9,6 +9,7 @@ description: |
   Code and functions for improved visualization of indicator data, thematic indices, and ecosystem indices from the Norwegian Nature Index work.
 biblio-style: apalike
 csl: chicago-fullnote-bibliography.csl
+always_allow_html: yes
 ---
 
 # Introduction
