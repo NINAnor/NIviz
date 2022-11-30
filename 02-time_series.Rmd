@@ -1,12 +1,22 @@
 # Time series {#cross}
 
-
 ```{r setup_timeseries, echo=FALSE, message=FALSE, warning=FALSE}
 source("R/colorPalettes.R")
 source("R/ggplotTheme.R")
 ```
 
+This chapter presents prototypes for upgraded representations of time-series information, both raw data and scaled indicator values. 
 
+We had conceptually outlined two major ideas here (Figure \@ref(fig:NItsSketch)):
+
+1) Graphs with toggle options allowing to display data and indicator values with different levels of aggregation, and for the different areas they are reported for in the database
+2) Side-by-side presentation of scaled indicator data and raw data
+
+```{r NItsSketch, out.width = "100%", echo = FALSE, fig.cap = "Early sketch of ideas for improving / adding additional information to time-series plots."}
+knitr::include_graphics("images/NI_TimeSeries_Sketch.png")
+```
+
+Time was not sufficient to implement all of these aspects in great detail and some are still missing in the presentation below (e.g. the overlay of averaged indicator values over area-specific indicator values).
 
 ## Raw data
 

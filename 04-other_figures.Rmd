@@ -1,5 +1,7 @@
 # Other figures
 
+This final chapter presents a range of other figures and charts that may help with improving the display of key information on the website. 
+
 ```{r setup_otherFigures, echo=FALSE, message=FALSE, warning=FALSE}
 source("R/colorPalettes.R")
 source("R/ggplotTheme.R")
@@ -8,7 +10,7 @@ library(tidyverse)
 library(ggridges)
 ```
 
-## Gradient density plots for interactive maps
+## Gradient density plots for interactive maps {#densities}
 The maps presented on the webpage do not include any representation of uncertainty. One way of including that information without having to add additional (layers to the) maps would be to build on the interactive functions included so far and present a probability distribution for the given region and year. This could be displayed in the same box that currently appears when hovering over an area and displays area name and average indicator value.
 
 To make these density plots, we use the previously simulated bootstrap samples, using Jerv as an example: 
@@ -20,7 +22,7 @@ bootStrp <- readRDS(paste0("data/", i, "_bootstrapped_scaled.rds"))
 head(bootStrp)
 
 ```
-I have considered forcing all indicator values > 1 to display as 1, but this messes up when plotting density functions. Still, this conversion is required for calculating the point estimate (median) and I therefore make a copy of the data in which no values are larger than 1. 
+We have considered forcing all indicator values > 1 to display as 1, but this messes up when plotting density functions. Still, this conversion is required for calculating the point estimate (median) and we therefore make a copy of the data in which no values are larger than 1. 
 
 ```{r, eval = TRUE}
 bootStrp1 <- bootStrp
@@ -234,7 +236,7 @@ for(i in 1:length(indicator)){
 }
 
 ```
-Depending on how large these pie charts should appear on the website in the end, it may be necessary to move the percentage labels outside the pies. Doing that is a bit more cumbersome, but works with the code below unless the indicator belongs 100 \% to one dataset. When that is the case, the solution below does not print the percentage label at all (see indicator Lange) and I have not figured out how to fix that yet. 
+Depending on how large these pie charts should appear on the website in the end, it may be necessary to move the percentage labels outside the pies. Doing that is a bit more cumbersome, but works with the code below unless the indicator belongs 100 \% to one dataset. When that is the case, the solution below does not print the percentage label at all (see indicator Lange) and we have not figured out how to fix that yet. 
 
 
 ```{r, eval = TRUE}
@@ -350,6 +352,9 @@ wordcloud(words = lomvi$PressureFactor, freq = lomvi$PressureValue, min.freq = 1
 ```
 
 ## Data type
+
+For data type, pie charts can also be a good option for visualization. The same would also hold for other pieces of key information that are not currently displayed, such as the proportion of imputed data points. 
+
 ```{r}
 source("R/colorPalettes.R")
 ```
@@ -392,4 +397,13 @@ ggplot(data, aes(ymax=ymax, ymin=ymin, xmax=4, xmin=3, fill=category)) +
   theme(legend.position = "none")
 
 
+```
+
+## Weights
+
+Finally, today's website also does not present the indicator- or area-weights, even though they are absolutely central in the calculation of spatially aggregated indicators and indices.
+Visualization of indicator weights for indices (Nature Index for different ecosystems and thematic indices) are routinely made during the updating of the Nature Index and can be found in the reports (e.g. Figure \@ref(fig:NIWeights)). It might also be worth considering to make information on weighting at different levels available. This could, for example, include the area weights applied when making both composite indices and averaged indicators, or the weights given to any specific indicator in the Nature Index for different ecosystems and for different thematic indices.  
+
+```{r NIWeights, out.width = "80%", echo = FALSE, fig.cap = "Indicator weights for the Nature Index for mountains, as presented in the Nature Index report."}
+knitr::include_graphics("images/NI_Weights.png")
 ```

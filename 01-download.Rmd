@@ -1,5 +1,8 @@
 # Downloading and preparing example data 
 
+This section describes how to download the relevant indicator data from the Nature Index Database. It is completely reproducible, and can be run by anyone with valid login credentials to the database. 
+The downloaded data is then stored locally for use in the remainder of the code. 
+
 ```{r Load library_1, eval = TRUE, message = FALSE, warning = FALSE}
 if(!require(NIcalc)){
   devtools::install_github("NINAnor/NIcalc", build_vignettes = F)
@@ -8,7 +11,7 @@ library(NIcalc)
 
 ```
 
-Fill in your username (NINA email) and password.
+First, you have to fill in your username (NINA email) and password.
 ```{r Run locally, eval = FALSE}
 
 myUser <- "user@nina.no" # insert NINA email
@@ -16,7 +19,7 @@ myPwd  <- "" # secret password
 
 ```
 
-Choose which indicator(s) you want, use the NIcalc "importDatasetApi" function to retrieve data from the database and save the dataset locally.
+Then, choose which indicator(s) you want, use the NIcalc "importDatasetApi" function to retrieve data from the database, and save the dataset locally.
 
 ```{r}
 indicator <- c("Dikesoldogg",
@@ -57,7 +60,7 @@ for(i in indicator){
 }
 ```
 
-Next, I need to assemble the data set. This shouldn't be necessary since all the data is already present. But One thing I notices was that for jerv, the distribution familiy and parameters only appear after assembling.
+Next, we need to assemble the data set. This shouldn't be necessary since all the data is already present. But one thing we noticed was that for some indicators (e.g. jerv), the distribution family and parameters only appear after assembling.
 
 ```{r, message=F, warning=F, eval=F}
 # Spesify all of Norway incl the five regions, som NIunits:
@@ -87,7 +90,7 @@ for(i in indicator){
 ```
 
 
-Save the files 
+We then save the assembled data files. 
 ```{r, eval = F}
 
 for(i in indicator){
@@ -99,8 +102,7 @@ for(i in indicator){
 
 
 
-
-Loading the datafiles back into R.
+If necessary, we load the datafiles back into R.
 ```{r, eval=F}
 for(i in indicator){
   temp <- paste0("data/", i, "_assemebled.rds")
@@ -108,6 +110,7 @@ for(i in indicator){
 }
 ```
 
+Since we are particularly concerned with visualizing uncertainty alongside means, we next need to simulate raw data and indicator values from the uncertainty distributions stored in the database. 
 
 ```{r, eval =F}
 myYears <- as.character(c(1990,2000,2010,2014,2019))
@@ -214,11 +217,10 @@ assign(paste0(j, "_bootstrapped_scaled"), combScaled)
 
 ```
 
-The reference values are also bootstrapped with uncertainties. These are coded as year = NA. We might, however, just end up using the row means.
+Note that in this case, we also bootstrapped the reference values. These are coded as year = NA. This means that the simulation also accounts for reported uncertainty in reference values. For the purpose of this work, this makes sense as it leads to somewhat higher uncertainty in indicator values and hence a dataset that is more suitable to for testing out visualizations of uncertainty. However, up to and including the last iteration of the Nature Index (NI2020), uncertainty in reference values was NOT taken into account. 
 
 
-
-Save the files 
+Finally, we save the simulated datasets. 
 ```{r, eval = F}
 
 for(i in indicator){
